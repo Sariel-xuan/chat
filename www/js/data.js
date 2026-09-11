@@ -308,7 +308,7 @@
             (function next(batchIdx) {
                 if (batchIdx >= end) { setTimeout(function () { doMore(keys, end); }, 0); return; }
                 var kk = keys[batchIdx];
-                if (MEM_EST_STORES.indexOf(kk) !== -1) { next(batchIdx + 1); return; } // 已在内存估算，跳过（跳过实际存储键，而非裸名字）
+                if (getMemEstStores().indexOf(kk) !== -1) { next(batchIdx + 1); return; } // 已在内存估算，跳过（跳过实际存储键，而非裸名字）
                 localforage.getItem(kk).then(function (raw) {
                     if (raw != null) {
                         var bb = estimateValueBytes(raw);
