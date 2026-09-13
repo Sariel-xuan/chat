@@ -10558,6 +10558,8 @@
 
         body.bottom-collapse-mode .collapse-hideable { display: none !important; }
         body.bottom-collapse-mode #collapse-expand-btn { display: flex !important; }
+        /* 表情/拍一拍按钮是核心聊天功能：收纳模式不隐藏它，避免部分手机表情栏入口消失且无法找回 */
+        body.bottom-collapse-mode #combo-btn { display: flex !important; }
         #collapse-expand-btn.open {
             background: var(--accent-color) !important;
             color: #fff !important;
@@ -14476,7 +14478,7 @@ html[data-theme="dark"] .redpacket-send-head-ico i { color: var(--accent-color-d
 .rp-rec-status.wait { background: var(--border-color); color: var(--text-secondary); }
 
 /* ── 小手机桌面：底部应用图标网格（功能稍后接入） ── */
-#phone-desktop{position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top, 0px) + 12px) 0 calc(env(safe-area-inset-bottom, 0px) + 22px);pointer-events:none;background-color:var(--primary-bg, #f6f4ef);background-image:var(--desktop-bg-image, radial-gradient(circle at 50% 0%, rgba(255,255,255,.9), rgba(var(--accent-color-rgb),.12) 70%, rgba(var(--accent-color-rgb),.28)));background-size:cover;background-position:center;background-repeat:no-repeat;}
+#phone-desktop{position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top, 0px) + 12px) 0 env(safe-area-inset-bottom, 0px);pointer-events:none;background-color:var(--primary-bg, #f6f4ef);background-image:var(--desktop-bg-image, radial-gradient(circle at 50% 0%, rgba(255,255,255,.9), rgba(var(--accent-color-rgb),.12) 70%, rgba(var(--accent-color-rgb),.28)));background-size:cover;background-position:center;background-repeat:no-repeat;}
 
 /* ── 桌面/聊天视图切换：桌面视图隐藏聊天主体（保留承载桌面/子页面的 .main-chat-area）；聊天视图隐藏桌面 ── */
 body.dt-view .header,
