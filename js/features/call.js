@@ -897,93 +897,122 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
         p.classList.add('open');
     }
 
+    // ── 统一拖拽绑定 ──────────────────────────────────────────────
+    // 部分安卓 WebView（vivo/iQOO 等）对触摸的 PointerEvent 派发异常，
+    // 用 PointerEvent 写的拖拽在真机上"拖不动"（pointermove 不持续上报）。
+    // 这里改用 touch 事件为主 + 鼠标兜底：touchmove 挂在 document 上，
+    // 手指移出元素后也能持续跟手；鼠标合成事件用时间戳屏蔽，避免双触发。
+    function _bindDrag(el, opts) {
+        if (!el) return;
+        let on = false;
+        let lastTouchTs = 0;
+        const getPt = e => (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+        const start = (e, pt) => {
+            if (opts.skip && opts.skip(e)) return;
+            on = true;
+            try { opts.start(e, pt); } catch (err) { on = false; }
+        };
+        const move = (e, pt) => {
+            if (!on) return;
+            e.preventDefault();
+            try { opts.move(e, pt); } catch (err) { on = false; }
+        };
+        const end = (e, pt) => {
+            if (!on) return;
+            on = false;
+            try { opts.end(e, pt); } catch (err) {}
+        };
+
+        el.addEventListener('touchstart', e => { lastTouchTs = Date.now(); start(e, getPt(e)); }, { passive: true });
+        document.addEventListener('touchmove', e => move(e, getPt(e)), { passive: false });
+        document.addEventListener('touchend', e => end(e, getPt(e)));
+        document.addEventListener('touchcancel', e => end(e, getPt(e)));
+
+        el.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
+            if (Date.now() - lastTouchTs < 600) return; // 屏蔽触摸后的合成鼠标事件
+            start(e, getPt(e));
+        });
+        document.addEventListener('mousemove', e => move(e, getPt(e)));
+        document.addEventListener('mouseup', e => end(e, getPt(e)));
+    }
+
     function initDrag() {
         const hdr = document.getElementById('call-window-header');
         const win = document.getElementById('call-window');
         if (!hdr || !win) return;
-        let on = false;
-        hdr.addEventListener('pointerdown', e => {
-            if (e.pointerType === 'mouse' && e.button !== 0) return;
-            e.preventDefault();
-            const r = win.getBoundingClientRect();
-            S.dragOff = { x: e.clientX - r.left, y: e.clientY - r.top };
-            on = true;
-            try { hdr.setPointerCapture(e.pointerId); } catch(_) {}
+        _bindDrag(hdr, {
+            start(e, pt) {
+                const r = win.getBoundingClientRect();
+                S.dragOff = { x: pt.clientX - r.left, y: pt.clientY - r.top };
+            },
+            move(e, pt) {
+                if (!S.dragOff) return;
+                win.style.left   = clamp(pt.clientX - S.dragOff.x, 0, window.innerWidth  - win.offsetWidth)  + 'px';
+                win.style.top    = clamp(pt.clientY - S.dragOff.y, 0, window.innerHeight - win.offsetHeight) + 'px';
+                win.style.right  = 'auto'; win.style.bottom = 'auto';
+            },
+            end() {
+                if (!S.dragOff) return;
+                S.dragOff = null;
+                const r = win.getBoundingClientRect();
+                S.pos = { x: r.left, y: r.top };
+                localStorage.setItem(KEY_POS, JSON.stringify(S.pos));
+            }
         });
-        hdr.addEventListener('pointermove', e => {
-            if (!on || !S.dragOff) return; e.preventDefault();
-            win.style.left   = clamp(e.clientX - S.dragOff.x, 0, window.innerWidth  - win.offsetWidth)  + 'px';
-            win.style.top    = clamp(e.clientY - S.dragOff.y, 0, window.innerHeight - win.offsetHeight) + 'px';
-            win.style.right  = 'auto'; win.style.bottom = 'auto';
-        });
-        const stop = e => {
-            if (!on) return; on = false; S.dragOff = null;
-            const r = win.getBoundingClientRect(); S.pos = { x: r.left, y: r.top };
-            localStorage.setItem(KEY_POS, JSON.stringify(S.pos));
-            try { hdr.releasePointerCapture(e.pointerId); } catch(_) {}
-        };
-        hdr.addEventListener('pointerup', stop);
-        hdr.addEventListener('pointercancel', stop);
     }
 
     function initPillDrag() {
         const pill = document.getElementById('call-mini-pill');
         if (!pill) return;
-        let on = false;
-        pill.addEventListener('pointerdown', e => {
-            if (e.target.closest('.call-mini-hangup')) return;
-            e.preventDefault();
-            const r = pill.getBoundingClientRect();
-            S.pillDragOff = { x: e.clientX - r.left, y: e.clientY - r.top };
-            S.pillDragged = false; on = true;
-            try { pill.setPointerCapture(e.pointerId); } catch(_) {}
-        });
-        pill.addEventListener('pointermove', e => {
-            if (!on || !S.pillDragOff) return; e.preventDefault();
-            S.pillDragged = true;
-            pill.style.left   = clamp(e.clientX - S.pillDragOff.x, 0, window.innerWidth  - pill.offsetWidth)  + 'px';
-            pill.style.top    = clamp(e.clientY - S.pillDragOff.y, 0, window.innerHeight - pill.offsetHeight) + 'px';
-            pill.style.right  = 'auto'; pill.style.bottom = 'auto';
-        });
-        const stop = e => {
-            if (!on) return; on = false;
-            if (S.pillDragged) {
+        _bindDrag(pill, {
+            skip(e) { return !!e.target.closest('.call-mini-hangup'); },
+            start(e, pt) {
                 const r = pill.getBoundingClientRect();
-                S.pillPos = { x: r.left, y: r.top };
-                localStorage.setItem(KEY_PILL_POS, JSON.stringify(S.pillPos));
+                S.pillDragOff = { x: pt.clientX - r.left, y: pt.clientY - r.top };
+                S.pillDragged = false;
+            },
+            move(e, pt) {
+                if (!S.pillDragOff) return;
+                S.pillDragged = true;
+                pill.style.left   = clamp(pt.clientX - S.pillDragOff.x, 0, window.innerWidth  - pill.offsetWidth)  + 'px';
+                pill.style.top    = clamp(pt.clientY - S.pillDragOff.y, 0, window.innerHeight - pill.offsetHeight) + 'px';
+                pill.style.right  = 'auto'; pill.style.bottom = 'auto';
+            },
+            end() {
+                if (!S.pillDragOff) return;
+                S.pillDragOff = null;
+                if (S.pillDragged) {
+                    const r = pill.getBoundingClientRect();
+                    S.pillPos = { x: r.left, y: r.top };
+                    localStorage.setItem(KEY_PILL_POS, JSON.stringify(S.pillPos));
+                }
             }
-            S.pillDragOff = null;
-            try { pill.releasePointerCapture(e.pointerId); } catch(_) {}
-        };
-        pill.addEventListener('pointerup', stop);
-        pill.addEventListener('pointercancel', stop);
+        });
     }
 
     function initResize() {
         const h = document.getElementById('call-resize-handle');
         const win = document.getElementById('call-window');
         if (!h || !win) return;
-        let on = false;
-        h.addEventListener('pointerdown', e => {
-            e.preventDefault(); e.stopPropagation();
-            const r = win.getBoundingClientRect();
-            S.resizeInit = { ex: e.clientX, ey: e.clientY, w: r.width, h: r.height };
-            on = true;
-            try { h.setPointerCapture(e.pointerId); } catch(_) {}
+        _bindDrag(h, {
+            start(e, pt) {
+                e.stopPropagation();
+                const r = win.getBoundingClientRect();
+                S.resizeInit = { ex: pt.clientX, ey: pt.clientY, w: r.width, h: r.height };
+            },
+            move(e, pt) {
+                if (!S.resizeInit) return;
+                S.size.w = clamp(S.resizeInit.w + (pt.clientX - S.resizeInit.ex), 160, 600);
+                S.size.h = clamp(S.resizeInit.h + (pt.clientY - S.resizeInit.ey), 240, 800);
+                win.style.width = S.size.w + 'px'; win.style.height = S.size.h + 'px';
+            },
+            end() {
+                if (!S.resizeInit) return;
+                S.resizeInit = null;
+                localStorage.setItem(KEY_SIZE, JSON.stringify(S.size));
+            }
         });
-        h.addEventListener('pointermove', e => {
-            if (!on || !S.resizeInit) return; e.preventDefault();
-            S.size.w = clamp(S.resizeInit.w + (e.clientX - S.resizeInit.ex), 160, 600);
-            S.size.h = clamp(S.resizeInit.h + (e.clientY - S.resizeInit.ey), 240, 800);
-            win.style.width = S.size.w + 'px'; win.style.height = S.size.h + 'px';
-        });
-        const stop = e => {
-            if (!on) return; on = false; S.resizeInit = null;
-            localStorage.setItem(KEY_SIZE, JSON.stringify(S.size));
-            try { h.releasePointerCapture(e.pointerId); } catch(_) {}
-        };
-        h.addEventListener('pointerup', stop);
-        h.addEventListener('pointercancel', stop);
     }
 
     function bindEvents() {
@@ -1062,8 +1091,21 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
         injectHTML();
         bindEvents();
         bindVideocallBtn();
-        migrateBgKey();
-        loadBg();
+
+        // 关键：localforage 是 <head> 里的 defer 脚本，要等解析完成后才执行；
+        // call.js 在 body 末尾同步执行，此刻 window.localforage 还不存在。
+        // 直接调用 migrateBgKey()/loadBg() 会静默返回 → 通话背景"每次重启都重置"。
+        // 因此轮询等待 localforage 就绪后再恢复背景（最多约 15s 兜底）。
+        let _lfTries = 0;
+        const _restoreBgWhenReady = () => {
+            if (window.localforage) {
+                try { migrateBgKey(); } catch (e) {}
+                loadBg();
+                return;
+            }
+            if (_lfTries++ < 30) setTimeout(_restoreBgWhenReady, 500);
+        };
+        _restoreBgWhenReady();
 
         const late = () => {
             injectToolbarBtn();
@@ -1116,7 +1158,9 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
                 S.minimized = !!session.minimized;
                 S.isPartnerCall = !!session.isPartnerCall;
                 S.immersive = !!session.immersive;
-                if (session.bgImage) S.bgImage = session.bgImage;
+                // 只在本地没有已保存背景时才用会话里的背景：
+                // 会话背景来自心跳(10s节流)，可能落后于用户最后的选择；bgKey 里的是用户最新选择，优先保留。
+                if (session.bgImage && !S.bgImage) S.bgImage = session.bgImage;
 
                 document.getElementById('call-window')?.classList.remove('immersive');
                 ['call-inc-avatar','call-conn-avatar','call-win-avatar','call-mini-av'].forEach(fillAv);
