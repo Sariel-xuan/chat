@@ -1688,12 +1688,15 @@ html[data-theme="dark"] #chat-transition-overlay{
 
         <!-- ✦ 陪伴输入区（默认隐藏） ✦ -->
         <div id="companion-input-bar" class="companion-input-bar">
-            <input type="text" id="companion-input-field" class="companion-input-field" placeholder="说点什么吧…" maxlength="500">
+            <input type="text" id="companion-input-field" class="companion-input-field" placeholder="说点什么吧…" maxlength="500" enterkeyhint="send" autocomplete="off">
             <button id="companion-emoji-btn" class="companion-input-btn" title="表情包">
                 <i class="far fa-smile"></i>
             </button>
             <button id="companion-image-btn" class="companion-input-btn" title="图片">
                 <i class="far fa-image"></i>
+            </button>
+            <button id="companion-send-btn" class="companion-input-btn companion-input-send" title="发送">
+                <i class="fas fa-paper-plane"></i>
             </button>
         </div>
 
@@ -3992,7 +3995,7 @@ html[data-theme="dark"] #chat-transition-overlay{
     <script src="js/listeners-voice.js"></script>
     <script src="js/features/voice-recorder.js?v=1"></script>
     <script src="js/listeners-sticker.js"></script>
-    <script src="js/features/companion.js?v=218"></script>
+    <script src="js/features/companion.js?v=219"></script>
     <script src="js/features/global-msg-banner.js?v=2"></script>
     <script src="js/features/companion-diary.js"></script>
     <script src="js/features/voice-tts.js"></script>

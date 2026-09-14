@@ -4069,11 +4069,34 @@
             }
         });
 
-        // 回车发送
+        // 发送按钮（部分输入法回车映射异常时，仍可一键发送）
+        const sendBtn = document.getElementById('companion-send-btn');
+        if (sendBtn) {
+            sendBtn.addEventListener('click', () => doCompanionSend());
+        }
+
+        // 回车发送：兼容国产 Android 输入法/WebView 下 Enter 键的多种派发方式
+        // （有的 IME 用 keyCode 13 而非 key==='Enter'，有的只能在 keyup 才上报），
+        // 用 lastTry 去重，避免 keydown+keyup / 长按自动重复导致重复发送。
+        let _companionLastEnter = 0;
+        const _companionTrySend = () => {
+            const now = Date.now();
+            if (now - _companionLastEnter < 600) return;
+            _companionLastEnter = now;
+            doCompanionSend();
+        };
         field.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            const k = e.key || '';
+            if ((k === 'Enter' || e.keyCode === 13) && !e.shiftKey) {
                 e.preventDefault();
-                doCompanionSend();
+                _companionTrySend();
+            }
+        });
+        field.addEventListener('keyup', (e) => {
+            const k = e.key || '';
+            if ((k === 'Enter' || e.keyCode === 13) && !e.shiftKey) {
+                e.preventDefault();
+                _companionTrySend();
             }
         });
 
