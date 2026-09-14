@@ -1589,6 +1589,63 @@ function manageAutoSendTimer() {
             }
         };
 
+        // 换头像后，重刷所有已渲染的头像副本（聊天气泡、正在输入小框、陪伴气泡等），
+        // 避免"换头像后聊天区/陪伴页还是旧头像"。所有副本都以头部头像元素为唯一数据源，
+        // 因此只要头部更新了，这里据此同步即可。
+        window.refreshRenderedAvatars = function () {
+            try {
+                const enabled = !!settings.inChatAvatarEnabled;
+                const syncFromSource = (avatarEl, isUser) => {
+                    const source = isUser ? DOMElements.me.avatar : DOMElements.partner.avatar;
+                    const frame = isUser ? settings.myAvatarFrame : settings.partnerAvatarFrame;
+                    const shape = isUser ? (settings.myAvatarShape || 'circle') : (settings.partnerAvatarShape || 'circle');
+                    avatarEl.innerHTML = source.innerHTML;
+                    if (typeof applyAvatarFrame === 'function') applyAvatarFrame(avatarEl, frame);
+                    ['circle', 'square', 'pentagon', 'heart'].forEach(s => avatarEl.classList.remove('shape-' + s));
+                    if (shape !== 'none') avatarEl.classList.add('shape-' + shape);
+                };
+
+                // 1) 聊天区的既有消息气泡
+                document.querySelectorAll('.message-wrapper .message-avatar').forEach(function (avatarDiv) {
+                    const w = avatarDiv.closest('.message-wrapper');
+                    if (!w) return;
+                    if (avatarDiv.classList.contains('hidden')) return; // 同组隐藏头像跳过
+                    const isUser = w.classList.contains('sent');
+                    if (!enabled) { avatarDiv.style.display = 'none'; return; }
+                    avatarDiv.style.display = '';
+                    syncFromSource(avatarDiv, isUser);
+                });
+
+                // 2) 正在输入指示器的小头像（对方）
+                const tiAvatar = document.getElementById('typing-indicator-avatar');
+                if (tiAvatar) {
+                    const pImg = DOMElements.partner.avatar.querySelector('img');
+                    tiAvatar.innerHTML = pImg ? `<img src="${pImg.src}">` : '<i class="fas fa-user"></i>';
+                }
+
+                // 3) 陪伴页正在输入小头像
+                const ctAvatar = document.querySelector('.companion-typing-avatar');
+                if (ctAvatar) {
+                    const pImg = DOMElements.partner.avatar.querySelector('img');
+                    ctAvatar.innerHTML = pImg ? `<img src="${pImg.src}">` : '<i class="fas fa-user"></i>';
+                }
+
+                // 4) 已渲染的陪伴/过渡气泡头像副本
+                document.querySelectorAll('.companion-bubble-avatar, .companion-transition-avatar, .companion-typing-avatar .companion-bubble-avatar').forEach(function (el) {
+                    const pImg = DOMElements.partner.avatar.querySelector('img');
+                    if (el.querySelector('img') && pImg) resyncCompanionAvatarImg(el, pImg);
+                });
+            } catch (e) {
+                console.warn('[avatar] refreshRenderedAvatars:', e);
+            }
+        };
+
+        // 把陪伴相关头像 <img> 的 src 换成当前源头像的 src（保留样式/结构）
+        function resyncCompanionAvatarImg(container, srcImg) {
+            const imgs = container.querySelectorAll('img[src]');
+            imgs.forEach(function (im) { im.src = srcImg.src; });
+        }
+
         const removeBackground = () => {
             document.documentElement.style.removeProperty('--chat-bg-image');
             document.body.classList.remove('with-background');
@@ -2816,6 +2873,8 @@ if (partnerPersonas && partnerPersonas.length > 0 && Math.random() < 0.3) {
                      if (nextPersona.avatar) {
                          updateAvatar(DOMElements.partner.avatar, nextPersona.avatar);
                          localforage.setItem(getStorageKey('partnerAvatar'), nextPersona.avatar);
+                         // 同步刷新聊天区/陪伴页已渲染的头像副本
+                         if (typeof window.refreshRenderedAvatars === 'function') window.refreshRenderedAvatars();
                      }
                      throttledSaveData();
                 }

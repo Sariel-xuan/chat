@@ -664,7 +664,7 @@ async function fillAnnHeaderCard(ann) {
 
     const now = new Date();
     const isCountdown = ann.type === 'countdown';
-    const targetDate = new Date(ann.date);
+    const targetDate = window.parseDateLocal(ann.date);
     let diffDays;
     if (isCountdown) {
         diffDays = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24));
@@ -776,7 +776,7 @@ function renderAnniversariesList() {
     if (dataPanel) dataPanel.style.display = 'none';
 
     anniversaries.forEach(ann => {
-        const targetDate = new Date(ann.date);
+        const targetDate = window.parseDateLocal(ann.date);
         let diffDays = 0;
         let typeClass = '';
         let typeLabel = '';

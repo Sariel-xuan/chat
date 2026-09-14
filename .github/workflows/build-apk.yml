@@ -48,6 +48,20 @@ jobs:
       - name: 安装 npm 依赖
         run: npm ci
 
+      - name: 同步 web 资源到 www（以根目录为准）
+        run: |
+          # www 是 Capacitor 的 webDir，也是 APK 的实际打包源。
+          # 历史教训：开发时只改根目录 js/，忘记同步 www/，导致"网页版正常、APK 还是旧逻辑"。
+          # 这里构建前强制把根目录最新资源同步进 www，保证 APK 与网页版代码一致。
+          cp -r js/. www/js/
+          cp -r css/. www/css/
+          cp -r assets/. www/assets/
+          cp -r desktop-pl/. www/desktop-pl/
+          cp index.html www/index.html
+          cp manifest.json www/manifest.json
+          cp sw.js www/sw.js
+          echo "web 资源已同步到 www"
+
       - name: 同步 Capacitor（含插件注册）
         run: |
           # 如果 android 平台已存在则跳过 add，直接 sync

@@ -635,7 +635,7 @@ function _updateDaysCounter() {
         var list = Array.isArray(anniversaries) ? anniversaries : [];
         var main = list.find(function(a) { return a.type === 'anniversary'; }) || list[0];
         if (main && main.date) {
-            var diff = Math.floor((Date.now() - new Date(main.date)) / 86400000) + 1;
+            var diff = Math.floor((Date.now() - window.parseDateLocal(main.date)) / 86400000) + 1;
             if (diff > 0) { render('相识', diff); return; }
         }
     } catch(e) {}

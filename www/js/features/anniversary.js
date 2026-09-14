@@ -24,7 +24,7 @@ window._annLoadMeetOverride = _annLoadMeetOverride;
 // 得到当前相遇的实际数据（有 override 用 override，否则用首条消息）
 function _annGetMeetData() {
     if (_annMeetOverride && _annMeetOverride.date) {
-        return { name: _annMeetOverride.name || '相遇', date: _annMeetOverride.date, target: new Date(_annMeetOverride.date) };
+        return { name: _annMeetOverride.name || '相遇', date: _annMeetOverride.date, target: window.parseDateLocal(_annMeetOverride.date) };
     }
     var msgs = (typeof messages !== 'undefined') ? messages : [];
     if (!msgs.length) return null;
@@ -67,7 +67,7 @@ window._annGetPinned = function() {
     }
     var ann = (typeof anniversaries !== 'undefined' ? anniversaries : []).find(function(a) { return a.id === _annPinnedId; });
     if (!ann) return null;
-    var now = new Date(), target = new Date(ann.date), isCD = ann.type === 'countdown';
+    var now = new Date(), target = window.parseDateLocal(ann.date), isCD = ann.type === 'countdown';
     var d = isCD ? Math.max(0, Math.ceil((target - now) / 86400000)) : Math.max(0, Math.floor((now - target) / 86400000));
     return { type: 'ann', name: ann.name, days: d, verb: isCD ? '还有' : '已经', ann: ann };
 };
@@ -460,7 +460,7 @@ function renderAnniversariesList() {
     }).forEach(function(ann) {
         var isPinned    = (_annPinnedId === ann.id);
         var isCountdown = (ann.type === 'countdown');
-        var target      = new Date(ann.date);
+        var target      = window.parseDateLocal(ann.date);
         var diffDays    = isCountdown
             ? Math.max(0, Math.ceil((target - now) / 86400000))
             : Math.max(0, Math.floor((now - target) / 86400000));
@@ -607,7 +607,7 @@ window.openAnnDetail = function(annId) {
     } else {
         var ann = (typeof anniversaries !== 'undefined' ? anniversaries : []).find(function(a) { return a.id === annId; });
         if (!ann) return;
-        target = new Date(ann.date);
+        target = window.parseDateLocal(ann.date);
         name = ann.name;
         isCD = ann.type === 'countdown';
         remark = ann.remark || '';

@@ -69,6 +69,22 @@ function getRandomItem(arr) {
 }
 
 /**
+ * 把 'yyyy-mm-dd'（或 'yyyy/m/d' 等）日期字符串解析为【本地时区】当日 00:00 的 Date。
+ * 背景：new Date('2024-01-01') 按 ES 规范会按 UTC 午夜解析（等于东八区当天 08:00），
+ * 直接用 Date.now() 减它算"已过天数"时，每天 0:00-8:00 之间会少算 1 天（倒计时则多算 1 天），
+ * 且该行为在 Chrome/Safari/各 WebView 上完全一致，属于跨平台普遍 bug。
+ * 解析失败时回退为 new Date(str) 原语义，绝不抛错。
+ */
+window.parseDateLocal = function (str) {
+    var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(str == null ? '' : str).trim());
+    if (m) {
+        var y = +m[1], mo = +m[2], d = +m[3];
+        if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return new Date(y, mo - 1, d);
+    }
+    return new Date(str);
+};
+
+/**
  * 音乐外链 → 可播放地址解析。
  *
  * 背景：网易云官方外链（music.163.com/song/media/outer/url?id=xxx.mp3）现已对未登录一律
