@@ -514,6 +514,8 @@ fileInput.addEventListener('change', function(e) {
                     async () => {
                         if (currentAvatarData) {
                             updateAvatar(isPartner ? DOMElements.partner.avatar: DOMElements.me.avatar, currentAvatarData);
+                            // 换头像后同步刷新所有已渲染的头像副本（聊天气泡、正在输入小框、陪伴页头像等）
+                            if (typeof window.refreshRenderedAvatars === 'function') window.refreshRenderedAvatars();
                             throttledSaveData();
                             showNotification('头像已更新', 'success');
                             hideModal(modal.modal);
