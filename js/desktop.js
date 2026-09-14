@@ -726,7 +726,7 @@
         var list = (typeof anniversaries !== 'undefined' && Array.isArray(anniversaries))
             ? anniversaries : ((window.anniversaries && Array.isArray(window.anniversaries)) ? window.anniversaries : []);
         list.slice().sort(function (a, b) { return b.id - a.id; }).forEach(function (p) {
-            var now = new Date(), t = new Date(p.date);
+            var now = new Date(), t = window.parseDateLocal(p.date);
             var cd = p.type === 'countdown', valid = !isNaN(t.getTime());
             var d = valid ? (cd ? Math.max(0, Math.ceil((t - now) / 86400000))
                                : Math.max(0, Math.floor((now - t) / 86400000))) : 0;

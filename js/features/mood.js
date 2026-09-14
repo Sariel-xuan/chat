@@ -85,7 +85,7 @@ function toggleBatchFavoriteMode() {
     }
 
     list.innerHTML = anniversaries.map(anniversary => {
-        const startDate = new Date(anniversary.date);
+        const startDate = window.parseDateLocal(anniversary.date);
         const now = new Date();
         let diffDays;
         
@@ -164,7 +164,7 @@ function toggleBatchFavoriteMode() {
 }
 
         function showAnniversaryAnimation(anniversary) {
-            const startDate = new Date(anniversary.date);
+            const startDate = window.parseDateLocal(anniversary.date);
             const now = new Date();
             let diffDays;
             let title, message;
@@ -191,7 +191,7 @@ function toggleBatchFavoriteMode() {
         function updateAnniversaryDisplay(dateString) {
             if (!dateString) return;
 
-            const start = new Date(dateString);
+            const start = window.parseDateLocal(dateString);
             const now = new Date();
             const diffTime = Math.abs(now - start);
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
