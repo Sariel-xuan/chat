@@ -215,11 +215,13 @@
         } catch (e) {}
         if (!('Notification' in global)) return false;
         if (global.Notification.permission !== 'granted') return false;
-        // 用户正专注查看本页：不弹系统通知（应用内横幅已提示），避免打扰；
+        // 用户正专注查看本页：默认不弹系统通知（应用内横幅已提示），避免打扰；
         // 后台 / 失焦 / 其他窗口时才弹。isFocused 仅在真正获焦时为 true。
+        // 例外：options.inForeground=true 时（梦角来信 / 空间动态等用户明确要系统通知的
+        // 一次性触发）即便前台也弹出系统通知，配合应用内横幅"内外双达"。
         var focused = false;
         try { focused = document.visibilityState === 'visible' && document.hasFocus && document.hasFocus(); } catch (e) {}
-        if (focused) return false;
+        if (focused && !options.inForeground) return false;
 
         // 1) 优先 Service Worker（后台/失焦必达）
         if (_sendViaServiceWorker(title, body, options)) return true;

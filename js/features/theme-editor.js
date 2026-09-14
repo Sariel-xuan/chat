@@ -190,6 +190,12 @@ function initThemeEditor() {
                         `${parseInt(hex.slice(0,2),16)},${parseInt(hex.slice(2,4),16)},${parseInt(hex.slice(4,6),16)}`;
                 }
             }
+            // 一并同步并保存主色的派生 -rgb，避免底部输入栏半透明背景沿用旧值
+            syncRgbVars();
+            [['--primary-bg','--primary-bg-rgb'],['--secondary-bg','--secondary-bg-rgb'],['--accent-color','--accent-color-rgb']].forEach(function (pair) {
+                const rgbVal = root.style.getPropertyValue(pair[1]) || getComputedStyle(root).getPropertyValue(pair[1]).trim();
+                if (rgbVal && /^[\d.,\s]+$/.test(rgbVal)) customColors[pair[1]] = rgbVal.trim();
+            });
             settings.customThemeColors = customColors;
             throttledSaveData && throttledSaveData();
             updateUI();
@@ -292,6 +298,33 @@ function initThemeEditor() {
             return '';
         }
 
+        // 派生 -rgb 变量同步：
+        // 底部输入栏 etc 大量用 rgba(var(--accent-color-rgb)/--primary-bg-rgb/--secondary-bg-rgb) 做半透明背景，
+        // 这些 -rgb 在各主题的 :root{} 里写死。改色时若只写主色、不重算 -rgb，内联主色已变而 -rgb 仍停留在旧主题值，
+        // 会造成整条输入栏/按钮半透明底色新旧混用（呈"UI 混乱"）。因此所有改色路径末尾都要调用本函数。
+        function _hexToRgbTriplet(hex) {
+            hex = String(hex || '').trim();
+            if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return '';
+            return parseInt(hex.slice(1, 3), 16) + ', ' +
+                   parseInt(hex.slice(3, 5), 16) + ', ' +
+                   parseInt(hex.slice(5, 7), 16);
+        }
+        function syncRgbVars() {
+            const root = document.documentElement;
+            const rs = getComputedStyle(root);
+            const map = {
+                '--primary-bg':   '--primary-bg-rgb',
+                '--secondary-bg': '--secondary-bg-rgb',
+                '--accent-color': '--accent-color-rgb'
+            };
+            Object.keys(map).forEach(function (baseVar) {
+                const raw = root.style.getPropertyValue(baseVar) || rs.getPropertyValue(baseVar).trim();
+                const hex = resolveColorVar(raw, rs);
+                const t = _hexToRgbTriplet(hex);
+                if (t) root.style.setProperty(map[baseVar], t);
+            });
+        }
+
         function populateThemeEditor(currentColors = null) {
             const grid = document.getElementById('theme-editor-grid');
             if (!grid) return;
@@ -343,11 +376,8 @@ function initThemeEditor() {
                         const val = e.target.value;
                         document.documentElement.style.setProperty(v, val);
                         swatch.style.background = val;
-                        if (v === '--accent-color') {
-                            const h = val.replace('#','');
-                            document.documentElement.style.setProperty('--accent-color-rgb',
-                                `${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)}`);
-                        }
+                        // 同步派生 -rgb，避免底部输入栏等半透明背景沿用旧色
+                        syncRgbVars();
                     });
 
                     grid.appendChild(item);
@@ -428,6 +458,8 @@ function initThemeEditor() {
             for (const [variable, color] of Object.entries(colors)) {
                 document.documentElement.style.setProperty(variable, color);
             }
+            // 主色变化后同步派生 -rgb（底部输入栏等半透明背景）
+            syncRgbVars();
         }
         
         function saveCurrentThemeAsPreset() {
@@ -603,6 +635,8 @@ function populateThemeSelector() {
                     Object.keys(themeColorMappings).forEach(v => root.style.removeProperty(v));
                 }
             }
+            // 主色变化后同步派生 -rgb（底部输入栏等半透明背景）
+            syncRgbVars();
             
             if (scheme.customFontUrl) {
                 try { applyCustomFont(scheme.customFontUrl); } catch(e) {}

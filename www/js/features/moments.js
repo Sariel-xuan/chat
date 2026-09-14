@@ -132,7 +132,7 @@ function _pushNotif(type, postId) {
             const subs = {newPost:'快去看看 Ta 的动态~', liked:'', commented:'去看看 Ta 说了什么~', replied:'去看看 Ta 说了什么~'};
             const title = texts[type] || texts.newPost;
             const sub = subs[type] || '';
-            window._sendPartnerNotification(title, sub);
+            window._sendPartnerNotification(title, sub, { inForeground: true });
         }
     } catch (e) { console.warn('[moments] 系统通知推送失败:', e); }
     _nQ.push({type,postId}); _drainN();

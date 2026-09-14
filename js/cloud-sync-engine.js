@@ -503,49 +503,24 @@
                 }
             } catch (_serr) { console.warn('[cloud-sync] 云同步前快照失败:', _serr); }
 
-            // 需要保留的 key（不清空）：全局配置，不属于任何梦角
-            var PRESERVE_KEYS = [
-                APP_PREFIX_STR + 'cloudSyncConfig',   // 阿里云密钥
-                APP_PREFIX_STR + 'tour_seen',          // 新手引导已看过
-                APP_PREFIX_STR + 'MIGRATION_V2_DONE'   // 数据迁移标记
-            ];
-            function _isPreserved(k) {
-                return PRESERVE_KEYS.indexOf(k) !== -1;
-            }
+            // 恢复只应作用在“目标对象自己”的命名空间上，绝不能清空整个 CHAT_APP 前缀，
+            // 否则会连同把本地其他对象的完整数据桶删除（表现为“切换/恢复后其他对象档案消失”）。
+            // 因此不再有“需要保留的全局配置”逻辑（不再全清，也就无需例外），其余对象原样保留。
+            var targetPfx = APP_PREFIX_STR + targetSessionId + '_';
 
-            // 1) 清掉本地所有 CHAT_APP 相关 key（IndexedDB），但保留全局配置
+            // 1) 仅清掉目标对象命名空间下的键（IndexedDB）
             var keys = await localforage.keys();
             for (var i = 0; i < keys.length; i++) {
-                if (keys[i].indexOf(APP_PREFIX_STR) === 0 && !_isPreserved(keys[i])) {
+                if (keys[i].indexOf(targetPfx) === 0) {
                     try { await localforage.removeItem(keys[i]); } catch (e) {}
                 }
             }
-            // 2) 清 localStorage 里 app 相关的（包括紧急备份！）
+            // 2) 仅清全局性紧急备份键（崩溃恢复专用单键，不按对象分桶、切换对象时会残留上一个对象内容）。
+            //    不再整清各会话的 localStorage 文本键，避免误伤其他对象的本地数据。
             try {
-                var lsKeys = [];
-                for (var j = 0; j < localStorage.length; j++) {
-                    var lk = localStorage.key(j);
-                    if (lk) lsKeys.push(lk);
-                }
-                for (var m = 0; m < lsKeys.length; m++) {
-                    // 紧急备份 / crash recovery 数据：必须清掉，否则 app 重启会用旧数据覆盖我们刚恢复的数据
-                    if (lsKeys[m] === 'BACKUP_V1_critical' ||
-                        lsKeys[m] === 'BACKUP_V1_timestamp' ||
-                        lsKeys[m] === '_cdRecLogs') {
-                        localStorage.removeItem(lsKeys[m]);
-                        continue;
-                    }
-                    if (TEXT_LS_KEYS.indexOf(lsKeys[m]) !== -1 || isDgSessionLSKey(lsKeys[m])) {
-                        localStorage.removeItem(lsKeys[m]);
-                        continue;
-                    }
-                    for (var p = 0; p < TEXT_LS_PREFIXES.length; p++) {
-                        if (lsKeys[m].indexOf(TEXT_LS_PREFIXES[p]) === 0) {
-                            localStorage.removeItem(lsKeys[m]);
-                            break;
-                        }
-                    }
-                }
+                localStorage.removeItem('BACKUP_V1_critical');
+                localStorage.removeItem('BACKUP_V1_timestamp');
+                localStorage.removeItem('_cdRecLogs');
             } catch (e) {}
 
             // 3) 写入云端数据（键名带有目标 SESSION_ID 前缀，直接写入即可）
@@ -571,22 +546,31 @@
                 }
             }
 
-            // 4) 强制设置 lastSessionId 和 sessionList，确保 app 用正确的 session 启动
+            // 4) 合并 sessionList：把云端已有对象并入、同时完整保留本地其他对象，
+            //    绝不整体替换（整体替换会让仅存在于本地的对象从清单消失）。lastSessionId 指向目标。
             try {
-                // 从 remote 拿到正确的 sessionList（云端存的原始 sessionList）
                 var remoteSessionList = (remote.indexedDB && remote.indexedDB[APP_PREFIX_STR + 'sessionList']) || null;
-                if (Array.isArray(remoteSessionList) && remoteSessionList.some(function(s) { return s && s.id === targetSessionId; })) {
-                    // 直接用云端的 sessionList，它包含目标 session
-                    await localforage.setItem(APP_PREFIX_STR + 'sessionList', remoteSessionList);
-                } else {
-                    // 兜底：确保目标 session 在列表里
-                    var sl = await localforage.getItem(APP_PREFIX_STR + 'sessionList');
-                    if (!Array.isArray(sl)) sl = [];
-                    if (!sl.some(function(s) { return s && s.id === targetSessionId; })) {
-                        sl.push({ id: targetSessionId, name: _extractPartnerName(remote) || '已恢复的梦角', createdAt: Date.now() });
-                        await localforage.setItem(APP_PREFIX_STR + 'sessionList', sl);
+                if (!Array.isArray(remoteSessionList)) remoteSessionList = [];
+                var sl = await localforage.getItem(APP_PREFIX_STR + 'sessionList');
+                if (!Array.isArray(sl)) sl = [];
+
+                // 先把云端的对象并进来（新设备首次恢复时可看到云端全部梦角）
+                for (var _cI = 0; _cI < remoteSessionList.length; _cI++) {
+                    var _cS = remoteSessionList[_cI];
+                    if (!_cS || !_cS.id) continue;
+                    if (!sl.some(function (x) { return x && String(x.id) === String(_cS.id); })) {
+                        sl.push({
+                            id: String(_cS.id),
+                            name: _cS.name || '已恢复的梦角',
+                            createdAt: _cS.createdAt || Date.now()
+                        });
                     }
                 }
+                // 兜底确保目标对象在清单里
+                if (!sl.some(function (s) { return s && String(s.id) === String(targetSessionId); })) {
+                    sl.push({ id: targetSessionId, name: _extractPartnerName(remote) || '已恢复的梦角', createdAt: Date.now() });
+                }
+                await localforage.setItem(APP_PREFIX_STR + 'sessionList', sl);
                 // lastSessionId 强制指向目标
                 await localforage.setItem(APP_PREFIX_STR + 'lastSessionId', targetSessionId);
             } catch (e) {}

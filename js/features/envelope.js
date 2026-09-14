@@ -74,7 +74,7 @@ async function checkEnvelopeStatus() {
                     const preview = newReplyLetter.content.length > 20
                         ? newReplyLetter.content.substring(0, 20) + '…'
                         : newReplyLetter.content;
-                    window._sendPartnerNotification('💌 收到' + partnerName + '的回信', preview);
+                    window._sendPartnerNotification('💌 收到' + partnerName + '的回信', preview, { inForeground: true });
                 }
             } catch (e) { console.warn('[envelope] 回信通知推送失败:', e); }
         }
@@ -111,7 +111,7 @@ window._generatePartnerLetter = function() {
         if (typeof window._sendPartnerNotification === 'function') {
             const partnerName = (typeof settings !== 'undefined' && settings.partnerName) || '对方';
             const preview = content.length > 20 ? content.substring(0, 20) + '…' : content;
-            window._sendPartnerNotification('💌 ' + partnerName + '给你写了一封信', preview);
+            window._sendPartnerNotification('💌 ' + partnerName + '给你写了一封信', preview, { inForeground: true });
         }
     } catch (e) { console.warn('[envelope] 主动来信通知推送失败:', e); }
     if (typeof renderEnvelopeLists === 'function') { try { renderEnvelopeLists(); } catch(e) {} }

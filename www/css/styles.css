@@ -11899,6 +11899,8 @@ body #user-sticker-picker .empty-sticker-tip {
 .cs-topbar {
     display: flex; align-items: center;
     padding: 10px 16px 6px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    -webkit-padding-top: calc(10px + env(safe-area-inset-top, 0px));
     flex-shrink: 0;
 }
 .cs-icon-btn {
