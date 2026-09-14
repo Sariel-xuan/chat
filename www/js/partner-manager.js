@@ -167,6 +167,44 @@
         window.location.reload();
     };
 
+    // 新建对象要把“当前设置”克隆进新对象桶。为避免 settings 里夹带无法做结构化克隆
+    // （DataCloneError：function / DOM 元素 / 循环引用 / Symbol 等）的成员，导致
+    // localforage.setItem 失败、弹出“新建对象失败”（新装/真机环境下尤其常见），
+    // 这里做一次防御性净化：只保留 string/number/boolean/数组/普通对象，其余丢弃。
+    function cloneForPersist(val) {
+        var seen = [];
+        function walk(x) {
+            if (x === null || x === undefined) return x;
+            var t = typeof x;
+            if (t === 'string' || t === 'boolean') return x;
+            if (t === 'number') return isFinite(x) ? x : 0;
+            if (t === 'function' || t === 'symbol' || t === 'bigint') return undefined;
+            if (x instanceof Date) return x.toISOString();
+            if (Array.isArray(x)) {
+                if (seen.indexOf(x) !== -1) return undefined;   // 循环引用
+                seen.push(x);
+                var a = [];
+                for (var i = 0; i < x.length; i++) a.push(walk(x[i]));
+                seen.pop();
+                return a;
+            }
+            if (t === 'object') {
+                if (seen.indexOf(x) !== -1) return undefined;   // 循环引用
+                seen.push(x);
+                var o = {};
+                for (var k in x) {
+                    if (!Object.prototype.hasOwnProperty.call(x, k)) continue;
+                    var v = walk(x[k]);
+                    if (v !== undefined) o[k] = v;
+                }
+                seen.pop();
+                return o;
+            }
+            return undefined;
+        }
+        return walk(val);
+    }
+
     // 新建对象：预建完整人设(继承当前设置 + 自定义名字/配色) → 写入清单 → 切换重载
     window.createPartner = async function (name, color) {
         var nm = String(name || '').trim();
@@ -178,7 +216,11 @@
         // 防重复：极端情况下同 id 已存在则不再次追加，避免清单出现重复对象
         if (!list.some(function (s) { return s.id === newId; })) list.push(sess);
 
-        var seed = Object.assign({}, currentPartner(), { partnerName: nm, partnerStatus: '在线' });
+        // 用净化后的克隆做种子，确保可序列化（不会因 DataCloneError 失败）
+        var seed = cloneForPersist(currentPartner()) || {};
+        if (typeof seed !== 'object' || seed === null) seed = {};
+        seed.partnerName = nm;
+        seed.partnerStatus = '在线';
         // 头像/外观字段不随人设克隆，避免新对象沿用原对象的头像、配色与样式。
         // partnerColor 未显式传色时置空，各对象头像由渲染层按 SESSION_ID 派生独立渐变。
         ['partnerAvatar', 'myAvatar',
@@ -201,7 +243,8 @@
             } catch (e) {}
         } catch (e) {
             console.error('[partner-manager] 新建对象失败', e);
-            if (typeof showNotification === 'function') showNotification('新建对象失败', 'error');
+            var _msg = (e && e.message) ? e.message : String(e);
+            if (typeof showNotification === 'function') showNotification('新建对象失败：' + _msg, 'error');
             return;
         }
         window.location.hash = newId;
