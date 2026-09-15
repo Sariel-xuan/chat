@@ -18,7 +18,8 @@
 
 /* ── 顶部：与情侣空间一致的 outer header（复用空间同款样式类）── */
 #ent-outer-header {
-    padding: 0 16px;
+    padding: calc(env(safe-area-inset-top, 0px)) 16px 0;
+    -webkit-padding-top: calc(env(safe-area-inset-top, 0px));
     flex-shrink: 0;
 }
 /* 已移除胶囊上方的 couple 头像/心跳/天数栏，胶囊横幅与顶部栏保持小间隙 */
