@@ -903,6 +903,129 @@
         }, 150);
     };
 
+    // ── 桌面第三页入口：记事本 / 经期记录（占位全屏页，具体排版待定） ──
+    function _openFullpage(id) {
+        var page = document.getElementById(id);
+        if (!page || page.classList.contains('cs-open')) return;
+        // 打开前先收起其它全屏页/弹层，避免叠加
+        if (typeof window.closeEntertainment === 'function') window.closeEntertainment();
+        if (typeof window.closeCoupleSpace === 'function') window.closeCoupleSpace();
+        var sm = document.getElementById('settings-modal');
+        if (sm && typeof hideModal === 'function') hideModal(sm);
+        page.style.display = 'flex';
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () { page.classList.add('cs-open'); });
+        });
+    }
+    function _closeFullpage(id) {
+        var page = document.getElementById(id);
+        if (!page) return;
+        page.classList.remove('cs-open');
+        setTimeout(function () {
+            page.style.display = 'none';
+            renderNotesList();
+            renderPeriodStatus();
+        }, 380);
+    }
+    window.openNotesPage = function () { _openFullpage('notes-page'); };
+    window.closeNotesPage = function () { _closeFullpage('notes-page'); };
+    window.openPeriodPage = function () { _openFullpage('period-page'); };
+    window.closePeriodPage = function () { _closeFullpage('period-page'); };
+
+    // ── 桌面第三页卡片内容：记事本最近 3 条待办 + 经期周期状态 ──
+    var NOTES_KEY = 'tiNotesTodos';          // JSON 数组 [{ id, text, time(ms) }]
+    var PERIOD_KEY = 'tiPeriodSettings';     // JSON { lastStart:'YYYY-MM-DD', cycleDays, periodDays, lutealDays }
+
+    function _escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function _getNotes() {
+        try { return JSON.parse(dsGet(NOTES_KEY)) || []; } catch (e) { return []; }
+    }
+    function _getPeriodSettings() {
+        try { var v = JSON.parse(dsGet(PERIOD_KEY)); return v || null; } catch (e) { return null; }
+    }
+    function _fmtMD(d) { return (d.getMonth() + 1) + '月' + d.getDate() + '日'; }
+    function _ymdToDate(s) {
+        var p = String(s).split('-');
+        if (p.length !== 3) return null;
+        var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+        return isNaN(d.getTime()) ? null : d;
+    }
+    function _dayDiff(a, b) {
+        var A = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+        var B = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+        return Math.round((A - B) / 86400000);
+    }
+    function _relativeDay(ts) {
+        var now = new Date(); now.setHours(0, 0, 0, 0);
+        var t = new Date(ts); t.setHours(0, 0, 0, 0);
+        var diff = Math.round((now - t) / 86400000);
+        if (diff <= 0) return '今天';
+        if (diff === 1) return '昨天';
+        if (diff < 7) return diff + '天前';
+        return (t.getMonth() + 1) + '/' + t.getDate();
+    }
+    function renderNotesList() {
+        // 记事本逻辑集中在 js/features/notes.js 中（结构支持日期/重复/提醒）。
+        // 桌面卡片展示最近 3 条（按下次发生时间升序）。
+        if (window.NotesApp && typeof window.NotesApp.renderDesktopCard === 'function') {
+            try { window.NotesApp.renderDesktopCard(); } catch (e) {}
+            return;
+        }
+        var el = $('dt-notes-list');
+        if (el) el.innerHTML = '<div class="dt-p3-empty">暂无待办<br>点击进入记录</div>';
+    }
+    function _computePeriodStatus(s) {
+        var start = _ymdToDate(s.lastStart);
+        if (!start) return null;
+        var cycle = parseInt(s.cycleDays, 10) || 28;
+        var pDays = parseInt(s.periodDays, 10) || 5;
+        var luteal = parseInt(s.lutealDays, 10) || 14;
+        if (cycle <= pDays || luteal >= cycle || pDays <= 0 || luteal <= 0) return null;
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        // 推进到最近一次经期开始（<= 今天），并确定该周期的下次经期与排卵日
+        var cur = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        while (true) {
+            var next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + cycle);
+            if (next > today) break;
+            cur = next;
+        }
+        var nextPeriod = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + cycle);
+        var ovuDay = new Date(nextPeriod.getFullYear(), nextPeriod.getMonth(), nextPeriod.getDate() - luteal);
+        var ovuStart = new Date(ovuDay.getFullYear(), ovuDay.getMonth(), ovuDay.getDate() - 2);
+        var ovuEnd = new Date(ovuDay.getFullYear(), ovuDay.getMonth(), ovuDay.getDate() + 2);
+        // 1) 经期内
+        var periodEnd = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + pDays);
+        if (today >= cur && today < periodEnd) {
+            return { main: '经期第' + (_dayDiff(today, cur) + 1) + '天', sub: '预计 ' + _fmtMD(periodEnd) + ' 结束' };
+        }
+        // 2) 排卵期内（排卵窗共 5 天，中间第 3 天为排卵日）
+        if (today >= ovuStart && today <= ovuEnd) {
+            var idx = _dayDiff(today, ovuStart) + 1;
+            if (idx === 3) return { main: '排卵日', sub: '今天状态棒棒哒' };
+            return { main: '排卵期第' + idx + '天', sub: idx < 3 ? '即将到排卵日' : '刚过排卵日' };
+        }
+        // 3) 距离排卵期
+        if (today < ovuStart) {
+            return { main: '距离排卵期' + _dayDiff(ovuStart, today) + '天', sub: '预计 ' + _fmtMD(ovuDay) + ' 排卵' };
+        }
+        // 4) 距离预测经期
+        return { main: '距离预测经期' + _dayDiff(nextPeriod, today) + '天', sub: '预计 ' + _fmtMD(nextPeriod) + ' 开始' };
+    }
+    function renderPeriodStatus() {
+        // 经期周期/日历/统计逻辑集中在 js/features/period.js 中。
+        // 桌面卡片展示当前周期状态。
+        if (window.PeriodApp && typeof window.PeriodApp.renderDesktopCard === 'function') {
+            try { window.PeriodApp.renderDesktopCard(); } catch (e) {}
+            return;
+        }
+        var el = $('dt-period-status');
+        if (el) el.innerHTML = '<div class="dt-p3-empty">设置经期信息后<br>展示贴心提醒</div>';
+    }
+
     // ── 桌面第二页：链接状态 + 时间 ──
     // 内容与风格源（dunian）一致：链接状态 14 条文案随机切换（每 1~2 小时随机刷新，按梦角隔离），
     // TA 时间 = 本地时间 + 每日随机时差（-12~+12 小时，跨天重摇，按梦角隔离）。
@@ -959,6 +1082,7 @@
         renderLinkStatus(idx);
     }
     function getTimeOffset() {
+        if (typeof settings !== 'undefined' && settings && settings.desktopTimeOffsetEnabled === false) return 0;
         var today = new Date();
         var key = today.getFullYear() + '-' +
                   String(today.getMonth() + 1).padStart(2, '0') + '-' +
@@ -1107,7 +1231,7 @@
 
             // 桌面第二页：时间每 30s 刷新（TA 时间基于每日时差），链接状态 1~2h 内自动切换，
             // 右侧状态栏跟随心情手账与每日公告（心情/公告变化后自动同步）
-            setInterval(function () { updateDesktopTimes(); refreshLinkStatus(false); renderP2Status(); }, 30000);
+            setInterval(function () { updateDesktopTimes(); refreshLinkStatus(false); renderP2Status(); renderNotesList(); renderPeriodStatus(); }, 30000);
         }
 
         // 桌面个性化渲染 + 旧数据迁移依赖 SESSION_ID 就绪（core.js 异步初始化，可能晚于
@@ -1129,6 +1253,8 @@
         refreshLinkStatus(false);
         updateDesktopTimes();
         renderP2Status();
+        renderNotesList();
+        renderPeriodStatus();
     }
 
     // ── 桌面双页滑动：横向滑动切换两张桌面页（底部图标栏固定，不随页面滑动）──
@@ -1137,8 +1263,8 @@
         if (!pager) return;
         var track = pager.querySelector('.dt-pager-track');
         if (!track) return;
-        var COUNT = 2;                 // 桌面页数量
-        var TARGET = 100 / COUNT;      // 每滑一页，轨道位移 = TARGET%（=50%）
+        var COUNT = 3;                 // 桌面页数量
+        var TARGET = 100 / COUNT;      // 每滑一页，轨道位移 = TARGET%
         var cur = 0;
         var width = 0, startX = 0, startY = 0, deltaX = 0;
         var moved = false, dragged = false;
@@ -1219,11 +1345,17 @@
         track.addEventListener('touchend', end, { passive: true });
         track.addEventListener('touchcancel', end, { passive: true });
 
-        track.addEventListener('mousedown', function (e) { start(e.clientX, e.clientY); });
+        var mouseDown = false;
+        track.addEventListener('mousedown', function (e) { start(e.clientX, e.clientY); mouseDown = true; });
         document.addEventListener('mousemove', function (e) {
+            if (!mouseDown) return;
             move(e.clientX, e.clientY);
         });
-        document.addEventListener('mouseup', end);
+        document.addEventListener('mouseup', function () {
+            if (!mouseDown) return;
+            mouseDown = false;
+            end();
+        });
 
         pager.addEventListener('click', suppressClick, true);
         render(false);

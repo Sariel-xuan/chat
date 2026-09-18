@@ -41,6 +41,7 @@
     var messages = lsGet(mhKey('mhMessages'), []); // 音乐厅聊天记录：落盘保留，重启不丢
     var invite = lsGet(mhKey('mhInvite'), { next: 0, missed: 0, active: null });
     var audio = null, _booted = false, _rendered = false;
+    var _inviteTimer = null; // 邀请到点检查的定时器（后台运行期间也能准点触发）
 
     function saveSongs() {
         // 含音频本体(data: 前缀)的歌单 → 只写 IndexedDB；纯链接小歌单同时镜像 localStorage
@@ -1304,10 +1305,10 @@
             favorited: false,
             note: null
         });
-        // 梦角邀请一起听歌归属"普通消息"：弹普通通知（与电影院邀请一致）
+        // 梦角邀请一起听歌归属"普通消息"：弹普通通知（与电影院邀请一致），前台也弹系统通知
         if (typeof window._sendPartnerNotification === 'function') {
             var pn = (typeof partnerName === 'function') ? partnerName() : '对方';
-            window._sendPartnerNotification(pn, '想和你一起听歌' + (inv && inv.songTitle ? '《' + inv.songTitle + '》' : ''));
+            window._sendPartnerNotification(pn, '想和你一起听歌' + (inv && inv.songTitle ? '《' + inv.songTitle + '》' : ''), { inForeground: true });
         }
     };
 
@@ -1394,6 +1395,15 @@
         var delay = (short ? 1 : (1 + Math.random())) * 24 * 3600000;
         invite.next = Date.now() + delay;
         saveInvite();
+        _setInviteTimer();
+    }
+    // 按 invite.next 安排下一次到点检查。旧逻辑只在启动时查一次，导致后台一直挂着
+    // 时永远到点不触发；这里改成到点后继续递归调度，后台运行期间也能准点弹音乐邀请。
+    function _setInviteTimer() {
+        if (_inviteTimer) { clearTimeout(_inviteTimer); _inviteTimer = null; }
+        var delay = (invite && invite.next) ? (invite.next - Date.now()) : 0;
+        if (delay < 1000) delay = 1000;
+        _inviteTimer = setTimeout(checkInvite, delay);
     }
     function checkInvite() {
         if (!_booted) return;
@@ -1403,7 +1413,7 @@
             scheduleNext(false);
             return;
         }
-        if (now < invite.next) return;
+        if (now < invite.next) { _setInviteTimer(); return; }
         if (invite.active && invite.active.ts && (now - invite.active.ts) < 4 * 3600000) {
             // 上一条邀请还在有效期且尚未被用户操作，先不重复发
             scheduleNext(true);

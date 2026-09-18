@@ -600,11 +600,12 @@ if (_chatSettingsEl) _chatSettingsEl.addEventListener('click', () => {
         '#typing-indicator-toggle': { prop: 'typingIndicatorEnabled', name: '正在输入' },
         '#read-no-reply-toggle': { prop: 'allowReadNoReply', name: '已读不回' },
         '#emoji-mix-toggle': { prop: 'emojiMixEnabled', name: '表情消息' },
-        '#partner-redpacket-toggle': { prop: 'partnerRedpacketEnabled', name: '梦角主动发红包' }
+        '#partner-redpacket-toggle': { prop: 'partnerRedpacketEnabled', name: '梦角主动发红包' },
+        '#desktop-time-offset-toggle': { prop: 'desktopTimeOffsetEnabled', name: '梦角时间随机时差' }
     };
     for (const [selector, { prop }] of Object.entries(toggleSyncMap)) {
         const el = document.querySelector(selector);
-        const val = prop === 'emojiMixEnabled' ? (settings[prop] !== false) : !!settings[prop];
+        const val = (prop === 'emojiMixEnabled' || prop === 'desktopTimeOffsetEnabled') ? (settings[prop] !== false) : !!settings[prop];
         if (el) el.classList.toggle('active', val);
     }
     const svSlider = document.getElementById('sound-volume-slider');
@@ -1288,7 +1289,8 @@ if (_chatSettingsEl) _chatSettingsEl.addEventListener('click', () => {
                     '#emoji-mix-toggle': { prop: 'emojiMixEnabled', name: '表情混入消息' },
                     '#partner-recall-toggle': { prop: 'partnerRecallEnabled', name: '梦角撤回消息' },
                     '#partner-hangup-toggle': { prop: 'partnerHangupEnabled', name: '梦角主动挂断' },
-                    '#partner-redpacket-toggle': { prop: 'partnerRedpacketEnabled', name: '梦角主动发红包' }
+                    '#partner-redpacket-toggle': { prop: 'partnerRedpacketEnabled', name: '梦角主动发红包' },
+                    '#desktop-time-offset-toggle': { prop: 'desktopTimeOffsetEnabled', name: '梦角时间随机时差' }
 };
 
             for (const [selector, {
@@ -1297,11 +1299,11 @@ if (_chatSettingsEl) _chatSettingsEl.addEventListener('click', () => {
                 const element = document.querySelector(selector);
                 if (!element) continue;
 
-                const _initVal = prop === 'emojiMixEnabled' ? (settings[prop] !== false) : !!settings[prop];
+                const _initVal = (prop === 'emojiMixEnabled' || prop === 'desktopTimeOffsetEnabled') ? (settings[prop] !== false) : !!settings[prop];
                 element.classList.toggle('active', _initVal);
 
                 element.addEventListener('click', () => {
-                    if (prop === 'emojiMixEnabled' && settings[prop] === undefined) settings[prop] = true;
+                    if ((prop === 'emojiMixEnabled' || prop === 'desktopTimeOffsetEnabled') && settings[prop] === undefined) settings[prop] = true;
                     settings[prop] = !settings[prop];
                     throttledSaveData();
                     updateUI();   // updateUI 内部已调用 renderMessages()，避免此处再全量重建消息 DOM

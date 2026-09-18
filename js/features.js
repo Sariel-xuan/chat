@@ -212,6 +212,9 @@
 
 (function() {
     var KEY = 'keepaliveAudioEnabled';
+    // 持久层用 localforage(IndexedDB) 兜底：localStorage 在部分 WebView/Safari 重启(或隐私模式)后会被清空，
+    // 导致"后台保活"开关重启即被打回关闭。localStorage 仅作同步缓存，localforage 作为可靠持久化。
+    var LF_KEY = (typeof APP_PREFIX !== 'undefined' && APP_PREFIX ? APP_PREFIX : 'CHAT_APP_V3_') + 'keepaliveAudioEnabled';
     // 内嵌静音音频（base64 WAV），完全本地，不依赖外网：
     // 1) 移动端启动时不再拉远程音频，减少卡顿与网络重试；
     // 2) 全程保持 muted=true 且 volume=0（真正静音、不出声）：
@@ -232,8 +235,24 @@
     var _watchdogTimer = null;
     var _wakeLock = null;
     var _diagTick = 0;
+    var _enabled = null;
 
-    function _get() { return localStorage.getItem(KEY) === 'true'; }
+    function _readLocal() {
+        try { return localStorage.getItem(KEY) === 'true'; } catch (e) { return false; }
+    }
+
+    function _get() {
+        if (_enabled === null) _enabled = _readLocal();
+        return _enabled;
+    }
+
+    function _persist(en) {
+        _enabled = en;
+        try { localStorage.setItem(KEY, String(en)); } catch (e) {}
+        try {
+            if (typeof localforage !== 'undefined') localforage.setItem(LF_KEY, String(en)).catch(function () {});
+        } catch (e) {}
+    }
 
     // ===== WebAudio 静音循环（主信号） =====
     // 根因说明：Chromium 对隐藏页面会强制节流 JS 定时器（隐藏约 5 分钟后降为 1 次/分钟甚至冻结），
@@ -468,7 +487,7 @@
 
     window._toggleKeepaliveAudio = function() {
         var next = !_get();
-        localStorage.setItem(KEY, String(next));
+        _persist(next);
         if (next) {
             _startWatchdog();
             _bindUnlock();
@@ -504,9 +523,33 @@
         }
     });
 
+    function _startIfEnabled() {
+        if (!_get()) return;
+        _startWatchdog(); _bindUnlock(); _start();
+    }
+
+    function _hydrate() {
+        try {
+            if (typeof localforage === 'undefined') { _startIfEnabled(); return; }
+            localforage.getItem(LF_KEY).then(function (v) {
+                var en;
+                if (v === 'true') en = true;
+                else if (v === 'false') en = false;
+                else en = _readLocal();   // 旧版仅 localStorage：沿用旧值并回填到 localforage
+                _persist(en);
+                _setUI(_get());
+                _startIfEnabled();
+            }).catch(function () {
+                _startIfEnabled();
+            });
+        } catch (e) {
+            _startIfEnabled();
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function(){
         _setUI(false);
-        if (_get()) { _startWatchdog(); _bindUnlock(); _start(); }
+        _hydrate();
     });
     setTimeout(function(){
         _setUI(_get() && _isReallyPlaying());

@@ -2261,7 +2261,7 @@
             // 梦角同意观影回执卡：弹系统通知
             if (typeof window._sendPartnerNotification === 'function') {
                 var _csA = (globalSettings && globalSettings.partnerName) || '对方';
-                window._sendPartnerNotification(_csA, '同意了你的观影邀请《' + _negoState.movieTitle + '》（' + _negoState.dateStr + ' ' + _negoState.timeStr + '）');
+                window._sendPartnerNotification(_csA, '同意了你的观影邀请《' + _negoState.movieTitle + '》（' + _negoState.dateStr + ' ' + _negoState.timeStr + '）', { inForeground: true });
             }
             _negoClear();
             _scheduleShowtimeReminder();
@@ -2279,7 +2279,7 @@
             // 梦角回复换个时间回执卡：弹系统通知
             if (typeof window._sendPartnerNotification === 'function') {
                 var _csC = (globalSettings && globalSettings.partnerName) || '对方';
-                window._sendPartnerNotification(_csC, '想换个时间看《' + _negoState.movieTitle + '》（' + _negoState.dateStr + ' ' + _negoState.timeStr + '），看看新的提议');
+                window._sendPartnerNotification(_csC, '想换个时间看《' + _negoState.movieTitle + '》（' + _negoState.dateStr + ' ' + _negoState.timeStr + '），看看新的提议', { inForeground: true });
             }
             _negoScheduleReminderCycle();
             _negoUpdateBadges();
@@ -2443,10 +2443,10 @@
         _cinemaSendInviteCard('countered', movieTitle, dateStr, timeStr, negoId);
         _negoScheduleReminderCycle();
         _negoUpdateBadges();
-        // 梦角邀请看电影归属"普通消息"：弹普通通知
+        // 梦角邀请看电影归属"普通消息"：弹普通通知，前台也弹系统通知
         if (typeof window._sendPartnerNotification === 'function') {
             var _cs = (globalSettings && globalSettings.partnerName) || '对方';
-            window._sendPartnerNotification(_cs, '想约你一起看《' + movieTitle + '》，有时间吗？');
+            window._sendPartnerNotification(_cs, '想约你一起看《' + movieTitle + '》，有时间吗？', { inForeground: true });
         }
     }
 

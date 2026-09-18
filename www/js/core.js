@@ -389,6 +389,7 @@ autoSendInterval: 5,
         partnerRecallEnabled: true,
         partnerHangupEnabled: true,
         partnerRedpacketEnabled: true,
+        desktopTimeOffsetEnabled: true,
         // 自定义红包封面（dataURL 或 null；null 用内置浅米灰渐变）
         // card=购物卡片主区 / open=打开红包弹窗主区 各自独立，再按 我的/梦角 拆开
         redpacketCardMyCover: null,
@@ -1557,12 +1558,13 @@ function manageAutoSendTimer() {
                 '#auto-send-toggle': 'autoSendEnabled',
                 '#partner-recall-toggle': 'partnerRecallEnabled',
                 '#partner-hangup-toggle': 'partnerHangupEnabled',
-                '#partner-redpacket-toggle': 'partnerRedpacketEnabled'
+                '#partner-redpacket-toggle': 'partnerRedpacketEnabled',
+                '#desktop-time-offset-toggle': 'desktopTimeOffsetEnabled'
             };
             for (const [sel, prop] of Object.entries(_pillSyncMap)) {
                 const el = document.querySelector(sel);
                 if (el) {
-                    const val = prop === 'emojiMixEnabled' ? (settings[prop] !== false) : !!settings[prop];
+                    const val = (prop === 'emojiMixEnabled' || prop === 'desktopTimeOffsetEnabled') ? (settings[prop] !== false) : !!settings[prop];
                     el.classList.toggle('active', val);
                 }
             }

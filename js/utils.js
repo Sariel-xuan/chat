@@ -926,9 +926,6 @@ async function importAllData(file) {
         }
         if (!confirm('导入全量备份将按你的选择覆盖对应数据。\n\n头像/背景等如勾选导入会写入备份中的内容。\n\n确定继续吗？')) return;
 
-        // 桌面挂件"自定义问候/状态池/运势"键按当前对象命名空间取值（中途迁移后为对象键）
-        const _dgKey = (base) => (typeof window.appSessionKey === 'function') ? window.appSessionKey(base) : ((typeof APP_PREFIX !== 'undefined' && APP_PREFIX) ? APP_PREFIX : 'CHAT_APP_V3_') + base;
-
         const categories = [
             {
                 id: 'chat',
@@ -940,13 +937,13 @@ async function importAllData(file) {
                 id: 'replies',
                 label: '回复 / 拍一拍 / 氛围',
                 indexedDBNeedles: ['customReplies', 'customPokes', 'customStatuses', 'customMottos', 'customIntros', 'customEmojis', 'customReplyGroups', 'customPokeGroups', 'customStatusGroups', 'customVoiceCards', 'customVoiceGroups', 'voiceCardEnabled'],
-                localStorageNeedles: [_dgKey('disabledReplyItems'), _dgKey('pokeSym_my'), _dgKey('pokeSym_partner'), _dgKey('pokeSym_my_custom'), _dgKey('pokeSym_partner_custom')]
+                localStorageNeedles: ['disabledReplyItems', 'disabledVoiceCards', 'pokeSym_my', 'pokeSym_partner', 'pokeSym_my_custom', 'pokeSym_partner_custom']
             },
             {
                 id: 'stickers',
                 label: '表情库（贴纸 / 自定义表情分组）',
                 indexedDBNeedles: ['stickerLibrary', 'myStickerLibrary', 'myStickerGroups'],
-                localStorageNeedles: [_dgKey('disabledStickerItems')]
+                localStorageNeedles: ['disabledStickerItems']
             },
             {
                 id: 'ann',
@@ -981,8 +978,8 @@ async function importAllData(file) {
             {
                 id: 'dg',
                 label: '每日公告 / 运势 / 天气',
-                indexedDBNeedles: [],
-                localStorageNeedles: [_dgKey('dg_custom_data'), _dgKey('dg_status_pool'), _dgKey('weekly_fortune'), _dgKey('daily_fortune')],
+                indexedDBNeedles: ['weekly_fortune', 'daily_fortune'],
+                localStorageNeedles: ['dg_custom_data', 'dg_status_pool'],
                 localStoragePrefixes: ['customWeather_']
             },
             {
@@ -996,6 +993,18 @@ async function importAllData(file) {
                 label: '真实语音配置',
                 indexedDBNeedles: ['favAudio_', '_favAudio_'],
                 localStorageNeedles: ['voiceTtsConfig']
+            },
+            {
+                id: 'notes',
+                label: '记事本（待办 / 提醒）',
+                indexedDBNeedles: [],
+                localStorageNeedles: ['tiNotesTodos']
+            },
+            {
+                id: 'period',
+                label: '经期记录 / 提醒',
+                indexedDBNeedles: [],
+                localStorageNeedles: ['tiPeriodSettings', 'tiPeriodLogs', 'tiPeriodReminder']
             }
         ];
 
@@ -1067,7 +1076,7 @@ async function importAllData(file) {
 }
 
 // ====== 软件更新检查 ======
-var APP_VERSION = '4.5.0';
+var APP_VERSION = '5.0.0';
 var GITHUB_REPO = 'qcqzz/chat';
 var GITHUB_RELEASES_URL = 'https://github.com/' + GITHUB_REPO + '/releases/latest';
 var GITHUB_API_URL = 'https://api.github.com/repos/' + GITHUB_REPO + '/releases/latest';

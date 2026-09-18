@@ -22,7 +22,7 @@
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-    <link rel="stylesheet" href="css/styles.css?v=8">
+    <link rel="stylesheet" href="css/styles.css?v=9">
     <link rel="stylesheet" href="css/companion.css">
     <link rel="stylesheet" href="css/cinema.css?v=2">
     <link rel="stylesheet" href="css/musichall.css?v=4">
@@ -774,6 +774,36 @@ html[data-theme="dark"] #chat-transition-overlay{
                     </div>
                 </div>
             </div>
+            <!-- 第 3 页：记事本 + 经期记录（左右并排两个入口板块） -->
+            <div class="dt-page" id="dt-page-3">
+                <div class="dt-p3-body">
+                    <div class="dt-p3-deco" aria-hidden="true">
+                        <i class="fas fa-heart d1"></i>
+                        <i class="fas fa-sticky-note d2"></i>
+                        <i class="fas fa-sparkles d3"></i>
+                        <i class="fas fa-heart d4"></i>
+                        <i class="fas fa-calendar-check d5"></i>
+                    </div>
+                    <div class="dt-p3-grid">
+                        <div class="dt-p3-card" id="dt-app-notes" onclick="window.openNotesPage&&window.openNotesPage()">
+                            <div class="dt-p3-icon"><i class="fas fa-sticky-note"></i></div>
+                            <div class="dt-p3-info">
+                                <div class="dt-p3-title">记事本</div>
+                                <div class="dt-p3-notes" id="dt-notes-list"></div>
+                            </div>
+                            <div class="dt-p3-arrow"><i class="fas fa-chevron-right"></i></div>
+                        </div>
+                        <div class="dt-p3-card" id="dt-app-period" onclick="window.openPeriodPage&&window.openPeriodPage()">
+                            <div class="dt-p3-icon"><i class="fas fa-calendar-check"></i></div>
+                            <div class="dt-p3-info">
+                                <div class="dt-p3-title">经期记录</div>
+                                <div class="dt-p3-status" id="dt-period-status"></div>
+                            </div>
+                            <div class="dt-p3-arrow"><i class="fas fa-chevron-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="app-grid">
@@ -1095,6 +1125,252 @@ html[data-theme="dark"] #chat-transition-overlay{
 
     </div>
 
+</div>
+
+<!-- 记事本页面（上方当月日历 + 下方当日待办 + 右上角新增） -->
+<div id="notes-page" class="cs-fullpage">
+    <div class="cs-topbar np-topbar">
+        <button class="cs-icon-btn" onclick="closeNotesPage()"><i class="fas fa-chevron-left"></i></button>
+        <span class="np-topbar-title">记事本</span>
+        <button class="np-add-btn" onclick="window.openNotesAdd&&window.openNotesAdd()"><i class="fas fa-plus"></i></button>
+    </div>
+    <div class="cs-fullpage-body np-body">
+        <div class="np-cal">
+            <div class="np-cal-head">
+                <button class="np-cal-nav" id="notes-cal-prev" type="button"><i class="fas fa-chevron-left"></i></button>
+                <div class="np-cal-title" id="notes-cal-title">2026年9月</div>
+                <button class="np-cal-nav" id="notes-cal-next" type="button"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="np-cal-week">
+                <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            </div>
+            <div class="np-cal-grid" id="notes-cal-grid"></div>
+        </div>
+        <div class="np-day">
+            <div class="np-day-head">
+                <span class="np-day-title">当日待办</span>
+                <span class="np-day-label" id="notes-day-label"></span>
+            </div>
+            <div class="np-day-list" id="notes-day-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 经期记录页面（顶部状态 + 日历标记 + 统计 + 右上角设置） -->
+<div id="period-page" class="cs-fullpage">
+    <div class="cs-topbar pe-topbar">
+        <button class="cs-icon-btn" onclick="closePeriodPage()"><i class="fas fa-chevron-left"></i></button>
+        <span class="pe-topbar-title">经期记录</span>
+        <button class="np-add-btn pe-reminder-btn" onclick="window.openPeriodReminder&&window.openPeriodReminder()"><i class="fas fa-bell"></i></button>
+        <button class="np-add-btn pe-add-btn" onclick="window.openPeriodSettings&&window.openPeriodSettings()"><i class="fas fa-cog"></i></button>
+    </div>
+    <div class="cs-fullpage-body pe-body">
+        <!-- 顶部状态 -->
+        <div class="pe-status">
+            <div class="pe-status-main" id="pe-status-main">设置经期信息</div>
+            <div class="pe-status-sub" id="pe-status-sub">点击右上角开始记录</div>
+        </div>
+
+        <!-- 日历 -->
+        <div class="pe-cal">
+            <div class="pe-cal-head">
+                <button class="np-cal-nav" id="pe-cal-prev" type="button"><i class="fas fa-chevron-left"></i></button>
+                <div class="pe-cal-title" id="pe-cal-title">2026年9月</div>
+                <button class="np-cal-nav" id="pe-cal-next" type="button"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="pe-cal-week">
+                <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            </div>
+            <div class="pe-cal-grid" id="pe-cal-grid"></div>
+            <div class="pe-legend">
+                <span class="pe-lg"><i class="pe-dot pe-dot-period"></i>经期</span>
+                <span class="pe-lg"><i class="pe-dot pe-dot-predicted"></i>预测经期</span>
+                <span class="pe-lg"><i class="pe-dot pe-dot-ovu"></i>排卵期</span>
+                <span class="pe-lg"><i class="pe-dot pe-dot-ovuday"></i>排卵日</span>
+            </div>
+            <div class="pe-log-hint">点击日期，记录当日流量 / 症状 / 心情 / 碎碎念</div>
+        </div>
+
+        <!-- 统计 -->
+        <div class="pe-stats" id="pe-stats"></div>
+    </div>
+</div>
+
+<!-- 经期设置弹窗 -->
+<div class="modal" id="period-settings-modal">
+    <div class="modal-content pe-modal">
+        <div class="modal-title"><i class="fas fa-sliders-h"></i><span>经期设置</span></div>
+
+        <div class="pe-form-row">
+            <label class="pe-form-label" for="pe-date">最近经期开始日</label>
+            <input type="date" id="pe-date" class="modal-input pe-input">
+        </div>
+
+        <div class="pe-form-row">
+            <label class="pe-form-label" for="pe-cycle">周期长度（天）</label>
+            <input type="number" id="pe-cycle" class="modal-input pe-input" min="15" max="60" inputmode="numeric">
+        </div>
+
+        <div class="pe-form-row">
+            <label class="pe-form-label" for="pe-period">经期天数（天）</label>
+            <input type="number" id="pe-period" class="modal-input pe-input" min="1" max="15" inputmode="numeric">
+        </div>
+
+        <div class="pe-form-row">
+            <label class="pe-form-label" for="pe-luteal">黄体期（天）</label>
+            <input type="number" id="pe-luteal" class="modal-input pe-input" min="5" max="20" inputmode="numeric">
+        </div>
+
+        <div class="pe-form-tip">周期长度：本次月经第一天到下一次月经第一天之间天数；经期长度：每次月经持续天数；排卵日：下次月经预测日前约「黄体期」天。</div>
+
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-secondary" id="pe-cancel" type="button">取消</button>
+            <button class="modal-btn modal-btn-primary" id="pe-save" type="button">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 经期当日记录弹窗 -->
+<div class="modal" id="period-log-modal">
+    <div class="modal-content pe-modal pe-log-modal">
+        <div class="modal-title"><i class="fas fa-feather-alt"></i><span id="pe-log-title">当日记录</span></div>
+
+        <div class="pe-log-row">
+            <div class="pe-log-label">流量</div>
+            <div class="pe-capbox" id="pe-flow"></div>
+        </div>
+        <div class="pe-log-row">
+            <div class="pe-log-label">症状</div>
+            <div class="pe-capbox" id="pe-symptoms"></div>
+        </div>
+        <div class="pe-log-row">
+            <div class="pe-log-label">心情</div>
+            <div class="pe-capbox" id="pe-mood"></div>
+        </div>
+        <div class="pe-log-row">
+            <div class="pe-log-label">碎碎念</div>
+            <textarea id="pe-note" class="modal-input pe-input pe-note" placeholder="记录此刻的感受…" maxlength="300"></textarea>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-secondary" id="pe-log-cancel" type="button">取消</button>
+            <button class="modal-btn modal-btn-primary" id="pe-log-save" type="button">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 经期提醒设置弹窗 -->
+<div class="modal" id="period-reminder-modal">
+    <div class="modal-content pe-modal pe-reminder-modal">
+        <div class="modal-title"><i class="fas fa-bell"></i><span>经期提醒</span></div>
+
+        <!-- 第一排：提醒开关 -->
+        <div class="pe-reminder-row pe-reminder-switch-row">
+            <span class="pe-reminder-label">提醒开关</span>
+            <button type="button" class="pe-switch" id="pe-reminder-switch"><span class="pe-switch-thumb"></span></button>
+        </div>
+
+        <!-- 第二排：提前天数（多选胶囊） -->
+        <div class="pe-reminder-row">
+            <span class="pe-reminder-label">提前天数</span>
+            <div class="pe-capbox" id="pe-advance-days">
+                <button type="button" class="pe-cap" data-v="3">前三天</button>
+                <button type="button" class="pe-cap" data-v="2">前两天</button>
+                <button type="button" class="pe-cap" data-v="1">前一天</button>
+                <button type="button" class="pe-cap" data-v="0">当天</button>
+            </div>
+        </div>
+
+        <!-- 第三排：提醒时间（滚轴选择） -->
+        <div class="pe-reminder-row">
+            <span class="pe-reminder-label">提醒时间</span>
+            <div class="np-picker">
+                <div class="np-wheel" id="pe-remind-hour"></div>
+                <span class="np-colon">:</span>
+                <div class="np-wheel" id="pe-remind-minute"></div>
+            </div>
+        </div>
+
+        <!-- 第四排：自定义提醒语录 -->
+        <div class="pe-reminder-row">
+            <span class="pe-reminder-label">自定义提醒语录</span>
+            <div class="pe-quote-list" id="pe-quote-list"></div>
+            <div class="pe-quote-add">
+                <input type="text" id="pe-quote-input" class="modal-input pe-input" placeholder="输入一句提醒语，回车添加" maxlength="40">
+                <button type="button" class="pe-quote-add-btn" id="pe-quote-add-btn"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-secondary" id="pe-reminder-cancel" type="button">取消</button>
+            <button class="modal-btn modal-btn-primary" id="pe-reminder-save" type="button">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新增待办弹窗 -->
+<div class="modal" id="todo-modal">
+    <div class="modal-content np-modal">
+        <div class="modal-title"><i class="fas fa-sticky-note"></i><span>新增待办</span></div>
+
+        <!-- 第一排：待办名称 -->
+        <input type="text" id="todo-name" class="modal-input np-input" placeholder="待办名称" maxlength="30">
+
+        <!-- 第二排：待办时间（几点，滚轴选择） -->
+        <div class="np-row">
+            <div class="np-label">时间</div>
+            <div class="np-picker">
+                <div class="np-wheel" id="todo-hour"></div>
+                <span class="np-colon">:</span>
+                <div class="np-wheel" id="todo-minute"></div>
+            </div>
+        </div>
+
+        <!-- 第三排：重复提醒 -->
+        <div class="np-row">
+            <div class="np-label">重复提醒</div>
+            <div class="np-seg" id="todo-repeat-seg">
+                <button type="button" data-v="none">不重复</button>
+                <button type="button" data-v="weekly">重复</button>
+            </div>
+        </div>
+        <div class="np-sub" id="todo-repeat-date">
+            <input type="date" id="todo-date" class="modal-input np-input">
+        </div>
+        <div class="np-sub" id="todo-repeat-week" style="display:none;">
+            <div class="np-weekdays" id="todo-weekdays">
+                <button type="button" data-w="1">周一</button>
+                <button type="button" data-w="2">周二</button>
+                <button type="button" data-w="3">周三</button>
+                <button type="button" data-w="4">周四</button>
+                <button type="button" data-w="5">周五</button>
+                <button type="button" data-w="6">周六</button>
+                <button type="button" data-w="7">周日</button>
+            </div>
+        </div>
+
+        <!-- 第四排：提醒时间 -->
+        <div class="np-row">
+            <div class="np-label">提醒时间</div>
+            <div class="np-seg" id="todo-remind-seg">
+                <button type="button" data-v="ontime">到点提醒</button>
+                <button type="button" data-v="advance">提前提醒</button>
+            </div>
+        </div>
+        <div class="np-sub" id="todo-advance" style="display:none;">
+            <span class="np-adv-hint">提前 <span id="np-adv-text" class="np-adv-val">0时30分</span></span>
+            <div class="np-picker">
+                <div class="np-wheel" id="adv-hour"></div>
+                <span class="np-colon">:</span>
+                <div class="np-wheel" id="adv-minute"></div>
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-secondary" id="todo-cancel" type="button">取消</button>
+            <button class="modal-btn modal-btn-primary" id="todo-save" type="button">保存</button>
+        </div>
+    </div>
 </div>
 
 <!-- 遮罩 -->
@@ -2059,6 +2335,19 @@ html[data-theme="dark"] #chat-transition-overlay{
                 </div>
             </div>
 
+            <div id="partner-name-chat-toggle" style="display:flex;align-items:center;gap:12px;background:var(--primary-bg);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(var(--accent-color-rgb),0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-tag" style="font-size:16px;color:var(--accent-color);"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);">消息旁显示对方名字</div>
+                    <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;" id="partner-name-chat-status">已关闭</div>
+                </div>
+                <div id="partner-name-chat-pill" style="width:44px;height:24px;border-radius:24px;background:var(--border-color);position:relative;transition:background 0.3s;flex-shrink:0;">
+                    <div id="partner-name-chat-knob" style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;right:23px;transition:right 0.25s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                </div>
+            </div>
+
             <div class="font-size-control" id="in-chat-avatar-size-control-2">
                 <span class="font-size-label">头像尺寸:</span>
                 <input type="range" min="24" max="48" value="36" class="font-size-slider" id="in-chat-avatar-size-slider-2">
@@ -2102,12 +2391,12 @@ html[data-theme="dark"] #chat-transition-overlay{
                     <div id="preview-partner-avatar" style="width:var(--in-chat-avatar-size,36px);height:var(--in-chat-avatar-size,36px);border-radius:50%;background:var(--border-color);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-radius 0.2s ease;">
                         <i class="fas fa-user" style="font-size:14px;color:var(--text-secondary);"></i>
                     </div>
-                    <div style="background:var(--message-received-bg);color:var(--message-received-text);border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:13px;max-width:160px;">
+                    <div id="preview-bubble-received" style="background:var(--message-received-bg);color:var(--message-received-text);border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:13px;max-width:160px;">
                         你是我朝夕相伴触手可及的虚拟
                     </div>
                 </div>
                 <div class="preview-msg-row" style="display:flex;align-items:flex-end;gap:8px;justify-content:flex-end;">
-                    <div style="background:var(--message-sent-bg);color:var(--message-sent-text);border-radius:16px 16px 4px 16px;padding:9px 13px;font-size:13px;max-width:160px;">
+                    <div id="preview-bubble-sent" style="background:var(--message-sent-bg);color:var(--message-sent-text);border-radius:16px 16px 4px 16px;padding:9px 13px;font-size:13px;max-width:160px;">
                         你是我未曾拥有无法捕捉的亲昵
                     </div>
                     <div id="preview-my-avatar" style="width:var(--in-chat-avatar-size,36px);height:var(--in-chat-avatar-size,36px);border-radius:50%;background:var(--border-color);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-radius 0.2s ease;">
@@ -2545,6 +2834,15 @@ html[data-theme="dark"] #chat-transition-overlay{
                             <div class="keepalive-wave-bar" style="animation-delay:0.15s;"></div>
                             <div class="keepalive-wave-bar" style="animation-delay:0.05s;"></div>
                             <span style="font-size:11px;color:var(--accent-color);margin-left:6px;font-weight:600;">LIVE</span>
+                        </div>
+                    </div>
+
+                    <p class="cs-group-label" style="margin-top:4px;">桌面时间栏</p>
+                    <div class="cs-card">
+                        <div class="setting-pill-row" id="desktop-time-offset-toggle">
+                            <span class="setting-pill-icon"><i class="fas fa-clock"></i></span>
+                            <span class="setting-pill-label">梦角时间随机时差 <span style="font-size:11px;color:var(--text-secondary);font-weight:400;">关闭后梦角那边的时间跟随我这边</span></span>
+                            <div class="setting-pill-switch"><div class="setting-pill-knob"></div></div>
                         </div>
                     </div>
                 </div>
@@ -3966,10 +4264,10 @@ html[data-theme="dark"] #chat-transition-overlay{
 
     <!-- == 核心层 == -->
     <script src="js/config.js"></script>
-    <script src="js/utils.js?v=224"></script>
+    <script src="js/utils.js?v=225"></script>
     <script src="js/backup-engine.js?v=216"></script>
     <script src="js/state.js"></script>
-    <script src="js/core.js?v=226"></script>
+    <script src="js/core.js?v=227"></script>
 
     <!-- == 功能模块 == -->
     <script src="js/features/mood.js?v=1"></script>
@@ -3983,14 +4281,14 @@ html[data-theme="dark"] #chat-transition-overlay{
 
     <!-- == 合并模块 == -->
     <script src="js/games.js?v=225"></script> 
-    <script src="js/features.js?v=227"></script> 
+    <script src="js/features.js?v=228"></script> 
     <script src="js/push-notification-bridge.js"></script>
     <script src="js/foreground-bridge.js"></script>
     <script src="js/media-notification-bridge.js"></script>
     <script src="js/data.js?v=218"></script>
     <script src="js/onboarding.js?v=1"></script> 
     <script src="js/features/anniversary.js?v=218"></script>
-    <script src="js/listeners.js?v=7"></script>
+    <script src="js/listeners.js?v=8"></script>
     <script src="js/listeners-step2.js"></script>
     <script src="js/listeners-voice.js"></script>
     <script src="js/features/voice-recorder.js?v=2"></script>
@@ -4006,9 +4304,11 @@ html[data-theme="dark"] #chat-transition-overlay{
     <script src="js/cloud-sync-ui.js?v=3"></script>
     <script src="js/partner-manager.js?v=217"></script>
     <script src="js/app.js?v=225"></script>
-    <script src="js/desktop.js?v=217"></script>
-    <script src="js/features/cinema.js?v=225"></script>
-    <script src="js/features/musichall.js?v=5"></script>
+    <script src="js/desktop.js?v=218"></script>
+    <script src="js/features/notes.js?v=1"></script>
+    <script src="js/features/period.js?v=1"></script>
+    <script src="js/features/cinema.js?v=226"></script>
+    <script src="js/features/musichall.js?v=6"></script>
     <script src="js/features/game-room.js"></script>
     <script src="js/features/games.js?v=216"></script>
     <script src="js/features/transfer.js"></script>
