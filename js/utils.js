@@ -944,8 +944,8 @@ async function importAllData(file) {
             },
             {
                 id: 'stickers',
-                label: '表情库（贴纸）',
-                indexedDBNeedles: ['stickerLibrary', 'myStickerLibrary'],
+                label: '表情库（贴纸 / 自定义表情分组）',
+                indexedDBNeedles: ['stickerLibrary', 'myStickerLibrary', 'myStickerGroups'],
                 localStorageNeedles: [_dgKey('disabledStickerItems')]
             },
             {
@@ -1009,7 +1009,7 @@ async function importAllData(file) {
                 <div style="
                     width:100%;max-width:560px;background:var(--secondary-bg);border-radius:24px 24px 0 0;
                     box-shadow:0 -10px 60px rgba(0,0,0,0.3);
-                    padding:16px 18px env(safe-area-inset-bottom,0);
+                    padding:16px 18px var(--safe-area-inset-bottom, env(safe-area-inset-bottom,0));
                 ">
                     <div style="width:36px;height:4px;border-radius:2px;background:var(--border-color);margin:0 auto 14px;"></div>
                     <div style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:10px;">全量恢复：选择要导入的部分</div>

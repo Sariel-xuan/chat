@@ -466,8 +466,8 @@
     align-items: center;
     gap: 4px;
     /* 顶到屏幕顶端(status-bar/刘海屏)时退回安全区内，避免返回按钮被状态栏遮住 */
-    padding: max(6px, env(safe-area-inset-top, 0px)) 10px 0;
-    -webkit-padding-top: max(6px, env(safe-area-inset-top, 0px));
+    padding: max(6px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 10px 0;
+    -webkit-padding-top: max(6px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
     border-bottom: 1px solid var(--border-color, #e8e8e8);
     flex-shrink: 0;
 }

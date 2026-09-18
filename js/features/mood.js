@@ -738,7 +738,7 @@ function _showMoodImportPicker(data) {
         <div style="
             width:100%;max-width:520px;background:var(--secondary-bg);border-radius:24px 24px 0 0;
             box-shadow:0 -10px 60px rgba(0,0,0,0.3);
-            padding:16px 18px env(safe-area-inset-bottom,0);
+            padding:16px 18px var(--safe-area-inset-bottom, env(safe-area-inset-bottom,0));
         ">
             <div style="width:36px;height:4px;border-radius:2px;background:var(--border-color);margin:0 auto 14px;"></div>
             <div style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:10px;">选择导入内容</div>

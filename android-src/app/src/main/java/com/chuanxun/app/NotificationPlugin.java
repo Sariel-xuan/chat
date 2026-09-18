@@ -93,6 +93,10 @@ public class NotificationPlugin extends Plugin {
     /** 点击通知打开 App 的 PendingIntent（用消息 id 作 requestCode，避免互相覆盖）。 */
     private PendingIntent contentIntent(Context context, int id) {
         Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+        if (intent == null) {
+            // 极少机型上启动 Intent 解析失败可能为 null，给出兜底 Intent 避免 NPE 闪退
+            intent = new Intent(context, MainActivity.class);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         return PendingIntent.getActivity(
             context, id, intent,

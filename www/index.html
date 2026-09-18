@@ -24,7 +24,7 @@
 
     <link rel="stylesheet" href="css/styles.css?v=8">
     <link rel="stylesheet" href="css/companion.css">
-    <link rel="stylesheet" href="css/cinema.css">
+    <link rel="stylesheet" href="css/cinema.css?v=2">
     <link rel="stylesheet" href="css/musichall.css?v=4">
     <link rel="stylesheet" href="css/music-local.css">
     <link rel="stylesheet" href="css/my-sticker-groups.css">
@@ -2222,7 +2222,7 @@ html[data-theme="dark"] #chat-transition-overlay{
     </div>
 </div>
 
-            <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(12px, env(safe-area-inset-bottom, 0px));">
+            <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));">
                 <button class="modal-btn modal-btn-secondary" id="back-appearance" onclick="(function(){ const panelContainer = document.getElementById('appearance-panel-container'); if(panelContainer && panelContainer.style.display !== 'none'){ hideAppearancePanel(); } else { hideModal(document.getElementById('appearance-modal')); showModal(document.getElementById('settings-modal')); } })()">
                     <i class="fas fa-arrow-left"></i> 返回
                 </button>
@@ -2844,7 +2844,7 @@ html[data-theme="dark"] #chat-transition-overlay{
                 </div>
             </div>
 
-            <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(14px, env(safe-area-inset-bottom, 0px));">
+            <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(14px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));">
                 <button class="modal-btn modal-btn-secondary" id="back-advanced" onclick="(function(){hideModal(document.getElementById('advanced-modal'));showModal(document.getElementById('settings-modal'))})()">
                     <i class="fas fa-arrow-left"></i> 返回
                 </button>
@@ -2920,7 +2920,7 @@ html[data-theme="dark"] #chat-transition-overlay{
                 </div>
             </div>
 
-            <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(14px, env(safe-area-inset-bottom, 0px));">
+            <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(14px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));">
                 <button class="modal-btn modal-btn-secondary" onclick="window._closeVoiceCloneModal && window._closeVoiceCloneModal()">
                     <i class="fas fa-times"></i> 关闭
                 </button>
@@ -3912,7 +3912,7 @@ html[data-theme="dark"] #chat-transition-overlay{
         </div>
 
         <!-- 关闭按钮 -->
-        <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(14px, env(safe-area-inset-bottom, 0px));">
+        <div class="modal-buttons" style="position:sticky;bottom:0;background:var(--secondary-bg);border-top:1px solid var(--border-color);padding:12px 0 0;z-index:10;margin-top:8px;margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;padding-bottom:max(14px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));">
             <button class="modal-btn modal-btn-secondary" id="cd-back-btn" onclick="(function(){hideModal(document.getElementById('companion-diary-modal'));showModal(document.getElementById('advanced-modal'))})()">
                 <i class="fas fa-arrow-left"></i> 返回
             </button>
@@ -3979,7 +3979,7 @@ html[data-theme="dark"] #chat-transition-overlay{
     <script src="js/features/reply-library.js"></script>
     <script src="js/features/theme-editor.js"></script>
     <script src="js/features/group-chat.js"></script>
-    <script src="js/features/call.js?v=1"></script>
+    <script src="js/features/call.js?v=2"></script>
 
     <!-- == 合并模块 == -->
     <script src="js/games.js?v=225"></script> 

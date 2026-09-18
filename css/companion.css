@@ -335,7 +335,7 @@ html[data-theme="dark"] .companion-mode-card i {
 /* ── 左上角退出按钮（绝对定位） ──────────────────────────────── */
 .companion-exit-corner {
     position: absolute;
-    top: max(20px, env(safe-area-inset-top, 20px));
+    top: max(20px, var(--safe-area-inset-top, env(safe-area-inset-top, 20px)));
     left: 20px;
     z-index: 5;
 }
@@ -362,7 +362,7 @@ html[data-theme="dark"] .companion-mode-card i {
 /* ── 玻璃球计时器（右上角）────────────────────────────────────── */
 .companion-timer-glass {
     position: absolute;
-    top: max(20px, env(safe-area-inset-top, 20px));
+    top: max(20px, var(--safe-area-inset-top, env(safe-area-inset-top, 20px)));
     right: 20px;
     width: 100px;
     height: 100px;
@@ -809,7 +809,7 @@ html[data-theme="dark"] .companion-mode-card i {
 /* 右下角悬浮的白噪音按钮 */
 .companion-noise-corner {
     position: absolute;
-    bottom: calc(max(30px, env(safe-area-inset-bottom, 30px)) + 52px);
+    bottom: calc(max(30px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 30px))) + 52px);
     right: 20px;
     z-index: 5;
     background: rgba(40,40,40,0.65) !important;
@@ -1339,7 +1339,7 @@ html[data-theme="dark"] .companion-mode-card i {
 .companion-history-corner {
     position: absolute;
     right: 20px;
-    bottom: calc(max(30px, env(safe-area-inset-bottom, 30px)) + 104px);
+    bottom: calc(max(30px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 30px))) + 104px);
     z-index: 5;
     background: rgba(40,40,40,0.65) !important;
     border: 1px solid rgba(255,255,255,0.2) !important;
@@ -1520,7 +1520,7 @@ html[data-theme="dark"] .companion-mode-card i {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: max(20px, env(safe-area-inset-top, 20px)) 20px 14px;
+    padding: max(20px, var(--safe-area-inset-top, env(safe-area-inset-top, 20px))) 20px 14px;
     flex-shrink: 0;
 }
 .companion-history-title {
@@ -1599,7 +1599,7 @@ html[data-theme="dark"] .companion-mode-card i {
 .companion-keyboard-corner {
     position: absolute;
     right: 20px;
-    bottom: max(30px, env(safe-area-inset-bottom, 30px));
+    bottom: max(30px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 30px)));
     z-index: 5;
     background: rgba(40,40,40,0.65) !important;
     border: 1px solid rgba(255,255,255,0.2) !important;
@@ -1628,7 +1628,7 @@ html[data-theme="dark"] .companion-mode-card i {
     position: absolute;
     left: 16px;
     right: 80px; /* 给右侧按钮列让位 */
-    bottom: max(20px, env(safe-area-inset-bottom, 20px));
+    bottom: max(20px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 20px)));
     display: none;
     align-items: center;
     gap: 6px;

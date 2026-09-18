@@ -18,8 +18,8 @@
 
 /* ── 顶部：与情侣空间一致的 outer header（复用空间同款样式类）── */
 #ent-outer-header {
-    padding: calc(env(safe-area-inset-top, 0px)) 16px 0;
-    -webkit-padding-top: calc(env(safe-area-inset-top, 0px));
+    padding: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 16px 0;
+    -webkit-padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
     flex-shrink: 0;
 }
 /* 已移除胶囊上方的 couple 头像/心跳/天数栏，胶囊横幅与顶部栏保持小间隙 */
@@ -367,7 +367,7 @@
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+    padding-bottom: max(8px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 8px)));
     background: var(--input-area-bg, #ffffff);
     border-top: 1px solid var(--border-color, #e8e8e8);
 }
@@ -966,7 +966,7 @@
     left: 0; right: 0; bottom: 0;
     background: var(--secondary-bg, #fff);
     border-radius: 18px 18px 0 0;
-    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    padding: 18px 18px calc(18px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
 }
 .cinema-hist-edit-label {
     font-size: 12px;
@@ -1052,7 +1052,7 @@
     left: 0; right: 0; bottom: 0;
     background: var(--secondary-bg, #fff);
     border-radius: 18px 18px 0 0;
-    padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+    padding: 20px 18px calc(20px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
 }
 .cinema-invite-title, .cinema-rating-title {
     font-size: 16px;
@@ -1136,7 +1136,7 @@
 }
 .cinema-test-player-close {
     position: absolute;
-    top: max(16px, env(safe-area-inset-top, 16px));
+    top: max(16px, var(--safe-area-inset-top, env(safe-area-inset-top, 16px)));
     right: 16px;
     width: 36px;
     height: 36px;
@@ -1156,7 +1156,7 @@
 }
 .cinema-test-player-hint {
     position: absolute;
-    top: max(60px, calc(env(safe-area-inset-top, 0px) + 60px));
+    top: max(60px, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 60px));
     left: 16px;
     right: 16px;
     text-align: center;

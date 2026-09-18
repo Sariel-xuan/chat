@@ -137,6 +137,10 @@ public class MediaNotificationPlugin extends Plugin {
         ensureChannel();
 
         Intent openIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+        if (openIntent == null) {
+            // 个别机型启动 Intent 可能解析为 null，兜底避免 NPE 闪退
+            openIntent = new Intent(context, MainActivity.class);
+        }
         openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         NotificationCompat.Builder b = new NotificationCompat.Builder(context, CHANNEL_ID)

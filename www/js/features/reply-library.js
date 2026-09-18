@@ -2710,7 +2710,7 @@ function _showIOSheet(title, subtitle, modules, icon, onConfirm, showMode = fals
         </style>
         <div style="
             background:var(--secondary-bg);border-radius:24px 24px 0 0;
-            width:100%;max-width:500px;padding:0 0 env(safe-area-inset-bottom,0);
+            width:100%;max-width:500px;padding:0 0 var(--safe-area-inset-bottom, env(safe-area-inset-bottom,0));
             box-shadow:0 -10px 60px rgba(0,0,0,.3);
             animation:slideUpSheet 0.3s cubic-bezier(0.34,1.56,0.64,1);
             max-height:92vh;display:flex;flex-direction:column;

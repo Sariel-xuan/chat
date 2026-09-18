@@ -90,6 +90,11 @@ public class VoiceRecorderPlugin extends Plugin {
             call.reject("尚未开始录音");
             return;
         }
+        if (file == null) {
+            // 防御：start 异常后 recorder 已释放但 outputFile 未清场时，避免 NPE 闪退
+            call.reject("录音文件未初始化");
+            return;
+        }
         long durationMs = System.currentTimeMillis() - startTimeMs;
         try {
             r.stop();

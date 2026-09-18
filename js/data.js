@@ -690,9 +690,9 @@ window._sysInfoPopup = {
             wrap = document.createElement('div');
             wrap.id = 'sysinfo-popup-wrap';
             wrap.style.cssText = [
-                'position:fixed','top:max(14px,env(safe-area-inset-top))','left:0','right:0',
+                'position:fixed','top:max(14px,var(--safe-area-inset-top, env(safe-area-inset-top)))','left:0','right:0',
                 'display:flex','justify-content:center','pointer-events:none',
-                'z-index:2147483000','padding:0 12px','transform:translateY(calc(-100% - max(14px, env(safe-area-inset-top)) - 4px))',
+                'z-index:2147483000','padding:0 12px','transform:translateY(calc(-100% - max(14px, var(--safe-area-inset-top, env(safe-area-inset-top))) - 4px))',
                 'transition:transform .28s cubic-bezier(.2,.9,.3,1.2)'
             ].join(';');
             wrap.setAttribute('aria-live','polite');
@@ -748,7 +748,7 @@ window._sysInfoPopup = {
 
         // 收起旧的再重新弹出，确保每次都完整出现
         wrap.style.transition = 'none';
-        wrap.style.transform = 'translateY(calc(-100% - max(14px, env(safe-area-inset-top)) - 4px))';
+        wrap.style.transform = 'translateY(calc(-100% - max(14px, var(--safe-area-inset-top, env(safe-area-inset-top))) - 4px))';
         // 强制回流后再弹出，保证过渡动画生效
         void wrap.offsetHeight;
         wrap.style.transition = 'transform .28s cubic-bezier(.2,.9,.3,1.2)';
@@ -761,7 +761,7 @@ window._sysInfoPopup = {
     },
     hide: function () {
         if (!this.wrapEl) return;
-        var hidden = 'translateY(calc(-100% - max(14px, env(safe-area-inset-top)) - 4px))';
+        var hidden = 'translateY(calc(-100% - max(14px, var(--safe-area-inset-top, env(safe-area-inset-top))) - 4px))';
         this.wrapEl.style.transform = hidden;
         var self = this;
         setTimeout(function(){ if (self.wrapEl) self.wrapEl.style.transform = hidden; self.unread = 0; }, 300);

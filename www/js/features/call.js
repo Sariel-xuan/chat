@@ -938,10 +938,18 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
     }
 
     function initDrag() {
-        const hdr = document.getElementById('call-window-header');
         const win = document.getElementById('call-window');
-        if (!hdr || !win) return;
-        _bindDrag(hdr, {
+        if (!win) return;
+        _bindDrag(win, {
+            // 按住小窗【任意区域】都可拖动；跳过所有按钮与缩放柄，保证点击/缩放不被干扰
+            skip(e) {
+                const t = e.target;
+                if (!t || !t.closest) return false;
+                if (t.closest('button')) return true;            // 头部/沉浸/背景/挂断/最小化等按钮
+                if (t.closest('#call-resize-handle')) return true; // 缩放柄交给 initResize
+                if (t.closest('#call-size-presets')) return true;  // 尺寸预设面板
+                return false;
+            },
             start(e, pt) {
                 const r = win.getBoundingClientRect();
                 S.dragOff = { x: pt.clientX - r.left, y: pt.clientY - r.top };

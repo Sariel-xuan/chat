@@ -20,16 +20,28 @@ public class ForegroundPlugin extends Plugin {
     @PluginMethod
     public void start(PluginCall call) {
         String partnerName = call.getString("partnerName", "对方");
-        Intent serviceIntent = new Intent(getContext(), ForegroundService.class);
-        serviceIntent.putExtra("partnerName", partnerName);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getContext().startForegroundService(serviceIntent);
-        } else {
-            getContext().startService(serviceIntent);
+        // Android 12+（尤其国内厂商深度后台策略：MIUI/EMUI/ColorOS 等）在 App 处于后台时调用
+        // startForegroundService() 会抛 ForegroundServiceStartNotAllowedException。该异常不捕获会
+        // 沿插件调用冒泡到主线程，造成应用频繁闪退。这里必须整体包住，失败仅记日志，
+        // 保活由 KeepAliveReceiver 的定时闹钟自愈链路兜底，绝不因一次后台拉起受限而拖垮进程。
+        try {
+            Intent serviceIntent = new Intent(getContext(), ForegroundService.class);
+            serviceIntent.putExtra("partnerName", partnerName);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                getContext().startForegroundService(serviceIntent);
+            } else {
+                getContext().startService(serviceIntent);
+            }
+        } catch (Throwable t) {
+            android.util.Log.w("ForegroundPlugin", "启动前台服务受限(已交由定时唤醒兜底): " + t.getMessage());
         }
 
-        // 启动定时唤醒
-        KeepAliveReceiver.scheduleNext(getContext());
+        // 启动定时唤醒（无论服务是否启动成功都必须续上闹钟链，否则保活断开）
+        try {
+            KeepAliveReceiver.scheduleNext(getContext());
+        } catch (Throwable t) {
+            android.util.Log.w("ForegroundPlugin", "调度定时唤醒失败: " + t.getMessage());
+        }
 
         call.resolve();
     }
@@ -46,13 +58,19 @@ public class ForegroundPlugin extends Plugin {
     @PluginMethod
     public void updateNotification(PluginCall call) {
         String partnerName = call.getString("partnerName", "对方");
-        Intent updateIntent = new Intent(getContext(), ForegroundService.class);
-        updateIntent.setAction("UPDATE_NOTIFICATION");
-        updateIntent.putExtra("partnerName", partnerName);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getContext().startForegroundService(updateIntent);
-        } else {
-            getContext().startService(updateIntent);
+        // 与 start() 同理：后台/厂商限制下 startForegroundService 可能抛异常，必须拦截防闪退
+        try {
+            Intent updateIntent = new Intent(getContext(), ForegroundService.class);
+            updateIntent.setAction("UPDATE_NOTIFICATION");
+            updateIntent.putExtra("partnerName", partnerName);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                getContext().startForegroundService(updateIntent);
+            } else {
+                getContext().startService(updateIntent);
+            }
+        } catch (Throwable t) {
+            android.util.Log.w("ForegroundPlugin", "更新前台通知受限(忽略): " + t.getMessage());
+            // 直接改通知文字可能失败，但保活主链路不受影响
         }
         call.resolve();
     }

@@ -107,7 +107,14 @@ public class ForegroundService extends Service {
                 .setPriority(Notification.PRIORITY_LOW)
                 .build();
 
-        startForegroundCompat(notification);
+        // Android 14+ 使用了 specialUse 前台服务类型，个别厂商/系统构建在解析服务类型
+        // 或校验权限时可能抛异常；若此处不捕获，异常会从 onStartCommand 冒出导致进程闪退。
+        // 提升失败时降级为普通 START_STICKY，由闹钟自愈链路兜底，保证不拖垮整个应用。
+        try {
+            startForegroundCompat(notification);
+        } catch (Throwable t) {
+            Log.w("ForegroundService", "提升前台失败(忽略，交由闹钟兜底): " + t.getMessage());
+        }
         return START_STICKY;
     }
 

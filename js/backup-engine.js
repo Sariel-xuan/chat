@@ -232,7 +232,7 @@
         var p = [];
         // 桌面挂件"自定义问候/状态池/运势"键当前为按对象命名空间命名，跳过时按其对应对象键模式匹配
         var sKey = function (base) { return (typeof window.appSessionKey === 'function') ? window.appSessionKey(base) : ((typeof window !== 'undefined' && window.APP_PREFIX) ? window.APP_PREFIX : 'CHAT_APP_V3_') + base; };
-        if (!flags.inclStickers) p.push('stickerLibrary', 'myStickerLibrary');
+        if (!flags.inclStickers) p.push('stickerLibrary', 'myStickerLibrary', 'myStickerGroups');
         if (!flags.inclThemes) p.push('backgroundGallery', 'chatBackground', 'partnerAvatar', 'myAvatar', 'playerCover');
         if (!flags.inclMsgs) p.push('chatMessages');
         if (!flags.inclSet) p.push('chatSettings', 'partnerPersonas', 'showPartnerNameInChat');
