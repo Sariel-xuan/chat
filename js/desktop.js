@@ -1287,8 +1287,16 @@
 
         function baseOffset() { return -cur * TARGET; }
         function render(animate) {
-            pager.classList.toggle('dragging', !animate);
-            track.style.transform = 'translateX(' + baseOffset() + '%)';
+            if (animate) {
+                // 先移除 dragging 恢复过渡，再强制重排，最后更新 transform，
+                // 避免“过渡恢复”与“位移更新”在同一帧发生导致动画不执行、页面卡在中间
+                pager.classList.remove('dragging');
+                void track.offsetWidth;
+                track.style.transform = 'translateX(' + baseOffset() + '%)';
+            } else {
+                pager.classList.add('dragging');
+                track.style.transform = 'translateX(' + baseOffset() + '%)';
+            }
             var ds = dots.children;
             for (var j = 0; j < ds.length; j++) ds[j].classList.toggle('active', j === cur);
         }
@@ -1316,7 +1324,6 @@
             return true;
         }
         function end() {
-            pager.classList.remove('dragging');
             var w = width || 360;
             var threshold = w * 0.2;
             var next = cur;
