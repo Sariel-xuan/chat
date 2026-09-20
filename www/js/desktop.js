@@ -1267,8 +1267,10 @@
         var TARGET = 100 / COUNT;      // 每滑一页，轨道位移 = TARGET%
         var cur = 0;
         var width = 0, startX = 0, startY = 0, deltaX = 0;
-        var moved = false, dragged = false;
+        var moved = false;
         var lastSwipeAt = 0;
+        var offset = 0;   // 当前轨道位移（%）——拖动与收尾动画共用
+        var rafId = 0;
 
         // 底部小圆点指示器：放到图标栏(.app-grid)下面
         var dots = document.createElement('div');
@@ -1286,17 +1288,31 @@
         }
 
         function baseOffset() { return -cur * TARGET; }
-        function render(animate) {
-            if (animate) {
-                // 先移除 dragging 恢复过渡，再强制重排，最后更新 transform，
-                // 避免“过渡恢复”与“位移更新”在同一帧发生导致动画不执行、页面卡在中间
-                pager.classList.remove('dragging');
-                void track.offsetWidth;
-                track.style.transform = 'translateX(' + baseOffset() + '%)';
-            } else {
-                pager.classList.add('dragging');
-                track.style.transform = 'translateX(' + baseOffset() + '%)';
+        function apply(pct) { track.style.transform = 'translateX(' + pct + '%)'; }
+        // 收尾动画改用 requestAnimationFrame 手动驱动，不依赖 CSS transition。
+        // 部分 Android WebView 上「先恢复过渡 → 强制重排 → 再改 transform」在同一帧
+        // 会因样式批量合并导致过渡不触发，轨道永久停在两页之间。
+        function animateTo(targetPct) {
+            if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+            var from = offset;
+            var delta = targetPct - from;
+            if (Math.abs(delta) < 0.01) { offset = targetPct; apply(offset); return; }
+            var t0 = 0;
+            var DURATION = 280;
+            function step(ts) {
+                if (!t0) t0 = ts;
+                var p = (ts - t0) / DURATION;
+                if (p >= 1) { offset = targetPct; apply(offset); rafId = 0; return; }
+                var eased = 1 - Math.pow(1 - p, 3);   // ease-out cubic
+                offset = from + delta * eased;
+                apply(offset);
+                rafId = requestAnimationFrame(step);
             }
+            rafId = requestAnimationFrame(step);
+        }
+        function render(animate) {
+            if (animate) { animateTo(baseOffset()); }
+            else { offset = baseOffset(); apply(offset); }
             var ds = dots.children;
             for (var j = 0; j < ds.length; j++) ds[j].classList.toggle('active', j === cur);
         }
@@ -1304,10 +1320,11 @@
             return Math.max(-(COUNT - 1) * TARGET, Math.min(0, v));
         }
         function start(x, y) {
+            if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
             width = pager.getBoundingClientRect().width;
             if (width <= 0) width = pager.offsetWidth || window.innerWidth || 360;
             startX = x; startY = y; deltaX = 0;
-            moved = false; dragged = false;
+            moved = false;
         }
         function move(x, y, prevent) {
             var dx = x - startX;
@@ -1318,8 +1335,8 @@
                 if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) moved = true;
                 else return false;
             }
-            if (!dragged) { dragged = true; pager.classList.add('dragging'); }
-            track.style.transform = 'translateX(' + bound(baseOffset() + (dx / width) * TARGET) + '%)';
+            offset = bound(baseOffset() + (dx / width) * TARGET);
+            apply(offset);
             if (prevent) { try { prevent(); } catch (e) {} }
             return true;
         }
