@@ -14257,7 +14257,7 @@ html[data-theme="dark"] .redpacket-send-head-ico i { color: var(--accent-color-d
 /* ── 微信风格红包：打开小窗 ─────────────────────────────────── */
 .redpacket-open-modal {
     position: fixed;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0; inset: 0;
     z-index: 10002;
     display: none;
     align-items: center;
@@ -14420,7 +14420,7 @@ html[data-theme="dark"] .redpacket-send-head-ico i { color: var(--accent-color-d
 }
 .redpacket-crop-shade {
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0; inset: 0;
     box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
     pointer-events: none;
 }
@@ -14480,7 +14480,7 @@ html[data-theme="dark"] .redpacket-send-head-ico i { color: var(--accent-color-d
 .rp-rec-status.wait { background: var(--border-color); color: var(--text-secondary); }
 
 /* ── 小手机桌面：底部应用图标网格（功能稍后接入） ── */
-#phone-desktop{position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px) 0 var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));pointer-events:none;background-color:var(--primary-bg, #f6f4ef);background-image:var(--desktop-bg-image, radial-gradient(circle at 50% 0%, rgba(255,255,255,.9), rgba(var(--accent-color-rgb),.12) 70%, rgba(var(--accent-color-rgb),.28)));background-size:cover;background-position:center;background-repeat:no-repeat;}
+#phone-desktop{position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px) 0 var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));pointer-events:none;background-color:var(--primary-bg, #f6f4ef);background-image:var(--desktop-bg-image, radial-gradient(circle at 50% 0%, rgba(255,255,255,.9), rgba(var(--accent-color-rgb),.12) 70%, rgba(var(--accent-color-rgb),.28)));background-size:cover;background-position:center;background-repeat:no-repeat;}
 
 /* ── 桌面/聊天视图切换：桌面视图隐藏聊天主体（保留承载桌面/子页面的 .main-chat-area）；聊天视图隐藏桌面 ── */
 body.dt-view .header,
@@ -14496,8 +14496,8 @@ body:not(.dt-view) #phone-desktop{display:none;}
 /* ── 桌面顶部栏（个性签名 + 两侧头像昵称，无右上角小图标） ── */
 .dt-topbar{pointer-events:auto;width:100%;max-width:600px;padding:0 16px;box-sizing:border-box;}
 .dt-topbar-card{position:relative;border-radius:20px;overflow:hidden;padding:14px 20px 16px;box-shadow:0 10px 30px rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.75);background:linear-gradient(150deg,rgba(255,255,255,.95),rgba(var(--accent-color-rgb),.18));}
-.dt-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;}
-.dt-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,.04) 45%,rgba(0,0,0,.3) 100%);}
+.dt-bg{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;}
+.dt-overlay{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,.04) 45%,rgba(0,0,0,.3) 100%);}
 /* 未设置背景图时不需要压暗遮罩，保持浅色卡片清晰 */
 .dt-topbar-card:not(.dt-has-bg) .dt-overlay{display:none;}
 .dt-sig{position:relative;z-index:1;font-size:14px;font-weight:600;letter-spacing:2px;color:var(--text-primary);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;user-select:none;-webkit-tap-highlight-color:transparent;}
@@ -14571,7 +14571,7 @@ html[data-theme="dark"] .dt-st-row-val{color:#ffd9a0;}
 html[data-theme="dark"] .dt-p2-status::before{color:rgba(255,217,160,.09);}
 
 /* ── 第二页背景装饰：漂浮爱心 / 星光（不参与布局，仅美化） ── */
-.dt-p2-deco{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.dt-p2-deco{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
 .dt-p2-deco i{position:absolute;font-size:20px;color:rgba(var(--accent-color-rgb),.15);opacity:.85;animation:dtDecoFloat 7s ease-in-out infinite;}
 .dt-p2-deco .d1{top:6px;left:2px;font-size:22px;animation-delay:0s;}
 .dt-p2-deco .d2{bottom:26px;left:0;font-size:16px;animation-delay:2.4s;}
@@ -14649,7 +14649,7 @@ html[data-theme="dark"] .dt-ls-line .ls-l-m{stroke:#ffd9a0;}
 .dt-p3-status-main{font-size:15px;font-weight:700;color:var(--accent-color);letter-spacing:.5px;text-align:left;}
 .dt-p3-status-sub{font-size:11px;color:var(--text-secondary);letter-spacing:.3px;text-align:left;}
 /* 第三页背景装饰 */
-.dt-p3-deco{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.dt-p3-deco{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
 .dt-p3-deco i{position:absolute;font-size:20px;color:rgba(var(--accent-color-rgb),.15);opacity:.85;animation:dtDecoFloat 7s ease-in-out infinite;}
 .dt-p3-deco .d1{top:6px;left:2px;font-size:22px;animation-delay:0s;}
 .dt-p3-deco .d2{bottom:26px;left:0;font-size:16px;animation-delay:2.4s;}

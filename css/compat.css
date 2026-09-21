@@ -1,0 +1,345 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Safari 低版本 / Android 旧版 WebView 兼容性补丁
+   ───────────────────────────────────────────────────────────────────
+   解决以下 CSS 特性在旧浏览器中不支持导致的布局崩溃：
+   1. inset 简写         — Safari < 14.1 / Chrome < 87 不支持
+   2. aspect-ratio       — Safari < 15   / Chrome < 88 不支持
+   3. dvh / svh / lvh   — Safari < 15.4 / Chrome < 108 不支持
+   4. :has()            — Safari < 15.4 / Chrome < 105 不支持
+   5. flex gap 由 js/compat.js 运行时检测并注入 margin 回退
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────────────────────────────
+   1. inset 简写回退
+   对未同时声明 top/right/bottom/left 的元素补充显式定位
+   ─────────────────────────────────────────────────────────────────── */
+@supports not (inset: 0) {
+
+    /* ── 桌面页核心容器（截图空白/错位的根因）── */
+    #phone-desktop {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+    .dt-bg {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+    .dt-overlay {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+    .dt-p2-deco {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+    .dt-p3-deco {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+
+    /* ── musichall 唱片相关 ── */
+    .mh-vinyl {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+    .mh-vinyl::before {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+    .mh-vinyl-art {
+        top: 4px; right: 4px; bottom: 4px; left: 4px;
+    }
+    .mh-vinyl-center {
+        top: 34%; right: 34%; bottom: 34%; left: 34%;
+    }
+    .mh-line-swatch--custom::after {
+        top: 0; right: 0; bottom: 0; left: 0;
+    }
+
+    /* ── cinema 放映厅 ── */
+    .cinema-showtime-ring {
+        top: -6px; right: -6px; bottom: -6px; left: -6px;
+    }
+    .cinema-showtime-ring--delay {
+        top: -14px; right: -14px; bottom: -14px; left: -14px;
+    }
+
+    /* ── 通用：所有带 inset 的固定/绝对定位元素兜底 ──
+       利用属性选择器捕获内联样式中的 inset */
+    [style*="inset:"] {
+        /* 内联样式中的 inset 无法由 @supports 精确回退，
+           由 js/compat.js 在运行时处理 */
+    }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────
+   2. aspect-ratio 回退
+   旧浏览器不支持 aspect-ratio，使用 padding-bottom hack 撑出比例
+   ─────────────────────────────────────────────────────────────────── */
+@supports not (aspect-ratio: 1 / 1) {
+
+    /* ── 通用正方形容器 ── */
+    .bg-item,
+    .sticker-tab-icon,
+    .avatar-upload-area,
+    .sticker-preview-grid-item,
+    .emoji-cat-btn,
+    .pl-slot,
+    .al-cover,
+    .cs-trans-swatch,
+    .cs-trans-cur,
+    .cs-trans-custom-btn {
+        position: relative;
+        height: auto !important;
+    }
+    .bg-item::before,
+    .sticker-tab-icon::before,
+    .avatar-upload-area::before,
+    .sticker-preview-grid-item::before,
+    .emoji-cat-btn::before,
+    .pl-slot::before,
+    .al-cover::before {
+        content: '';
+        display: block;
+        padding-bottom: 100%;
+    }
+    .bg-item > *,
+    .sticker-tab-icon > *,
+    .avatar-upload-area > *,
+    .sticker-preview-grid-item > *,
+    .emoji-cat-btn > *,
+    .pl-slot > *,
+    .al-cover > * {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+    }
+
+    /* ── 16:9 视频/图片容器 ── */
+    .cs-trans-inner,
+    [style*="aspect-ratio: 16"],
+    [style*="aspect-ratio:16"],
+    .ent-inner {
+        position: relative;
+        height: auto !important;
+    }
+    .cs-trans-inner::before,
+    .ent-inner::before {
+        content: '';
+        display: block;
+        padding-bottom: 56.25%; /* 16:9 */
+    }
+    .cs-trans-inner > *,
+    .ent-inner > * {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+    }
+
+    /* ── 13:22 容器 ── */
+    [style*="aspect-ratio: 13"],
+    [style*="aspect-ratio:13"] {
+        position: relative;
+        height: auto !important;
+    }
+
+    /* ── 日历单元格 ── */
+    .np-cal-cell {
+        position: relative;
+        height: auto !important;
+    }
+    .np-cal-cell::before {
+        content: '';
+        display: block;
+        padding-bottom: 100%;
+    }
+    .np-cal-cell > * {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+    }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────
+   3. dvh / svh / lvh 视口单位回退
+   旧浏览器不识别这些单位，声明会被丢弃，元素高度坍塌为 0
+   ─────────────────────────────────────────────────────────────────── */
+@supports not (height: 100dvh) {
+
+    /* 贴纸选择器弹窗 */
+    .sticker-picker-popover {
+        max-height: calc(100vh - 180px) !important;
+    }
+    @media (min-width: 481px) and (max-width: 1024px) {
+        .sticker-picker-popover {
+            max-height: calc(100vh - 160px) !important;
+            height: 350px !important;
+        }
+    }
+    @media (max-width: 480px) {
+        .sticker-picker-popover {
+            max-height: calc(100vh - 160px) !important;
+            height: 350px !important;
+        }
+    }
+
+    /* 数据弹窗 */
+    #data-modal .modal-content {
+        max-height: 88vh !important;
+    }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────
+   4. :has() 选择器回退
+   旧浏览器不支持 :has()，相关样式不会生效
+   对功能影响较小（仅样式微调），此处提供等价类名回退
+   ─────────────────────────────────────────────────────────────────── */
+@supports not selector(:has(*)) {
+
+    /* 数据弹窗行：选中态由 JS 添加 .has-checked 类 */
+    .dm-row-item.has-checked {
+        flex-wrap: wrap;
+    }
+    .export-row.has-checked {
+        border-color: rgba(var(--accent-color-rgb), 0.4) !important;
+        background: rgba(var(--accent-color-rgb), 0.04) !important;
+    }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────
+   5. flex gap 回退（CSS 层面兜底）
+   当浏览器不支持 flex gap 时，为关键布局容器添加 margin 回退
+   完整的 gap 回退由 js/compat.js 运行时处理，这里仅覆盖首屏关键元素
+   ─────────────────────────────────────────────────────────────────── */
+@supports not (gap: 1px) {
+
+    /* ── 底部导航图标栏 ── */
+    .app-cell > * + * {
+        margin-top: 7px;
+    }
+
+    /* ── 桌面第三页卡片 ── */
+    .dt-p3-card > * + * {
+        margin-left: 14px;
+    }
+    .dt-p3-info > * + * {
+        margin-top: 6px;
+    }
+    .dt-p3-body > * + * {
+        margin-top: 14px;
+    }
+    .dt-p3-grid > * + * {
+        margin-top: 12px;
+    }
+    .dt-p3-notes > * + * {
+        margin-top: 5px;
+    }
+    .dt-p3-note > * + * {
+        margin-left: 6px;
+    }
+
+    /* ── 桌面中部内容 ── */
+    .dt-content > * + * {
+        margin-left: 14px;
+    }
+
+    /* ── 纪念日方块 ── */
+    .dt-anniversary > * + * {
+        margin-top: 5px;
+    }
+    .dt-ann-meta > * + * {
+        margin-top: 1px;
+    }
+
+    /* ── 拍立得插槽 ── */
+    .pl-slot > * + * {
+        margin-top: 6px;
+    }
+    .pl-slot-head > * + * {
+        margin-left: 8px;
+    }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────
+   6. backdrop-filter 降级
+   -webkit-backdrop-filter 已在原 CSS 中声明，此处仅处理
+   完全不支持时的背景兜底
+   ─────────────────────────────────────────────────────────────────── */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+
+    .app-grid {
+        background: rgba(255, 255, 255, 0.75) !important;
+    }
+    .dt-app-grid {
+        background: rgba(255, 255, 255, 0.75) !important;
+    }
+    .header {
+        background: rgba(255, 255, 255, 0.92) !important;
+    }
+    html[data-theme="dark"] .app-grid,
+    html[data-theme="dark"] .dt-app-grid {
+        background: rgba(24, 28, 40, 0.85) !important;
+    }
+    html[data-theme="dark"] .header {
+        background: rgba(30, 30, 30, 0.92) !important;
+    }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────
+   7. object-fit 回退
+   旧 WebView (Chromium < 32) 不支持 object-fit
+   ─────────────────────────────────────────────────────────────────── */
+@supports not (object-fit: cover) {
+
+    .dt-polaroid-card img {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 5px;
+    }
+    .al-cover img,
+    .al-cover > img {
+        width: 100% !important;
+        height: 100% !important;
+    }
+}
+
+
+/* ───────────────────────────────────────────────────────────────────
+   8. CSS min()/max()/clamp() 数学函数回退
+   旧 WebView (Chromium < 79 / Safari < 11.1) 不解析这些函数，
+   整个声明会被丢弃导致容器宽度/内边距失效
+   ─────────────────────────────────────────────────────────────────── */
+@supports not (width: min(10px, 20px)) {
+
+    /* ── 手机桌面底部图标栏（截图空白/挤压的关键）── */
+    .app-grid {
+        width: 90% !important;
+    }
+
+    /* ── 欢迎页容器 ── */
+    .splash-inner {
+        width: 93vw !important;
+    }
+
+    /* ── Toast 通知条 ── */
+    .notification {
+        max-width: 88vw !important;
+    }
+
+    /* ── 贴纸选择器弹窗 ── */
+    .sticker-picker-popover {
+        width: calc(100vw - 40px) !important;
+    }
+
+    /* ── 陪伴弹窗 / 退出确认框 / 白噪音卡片 ── */
+    .companion-modal-content,
+    .companion-setup-content,
+    .companion-time-content {
+        width: 92vw !important;
+    }
+    .companion-exit-box {
+        width: 85vw !important;
+    }
+    .companion-noise-card-inner {
+        width: 86vw !important;
+    }
+}

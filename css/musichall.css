@@ -75,13 +75,13 @@
 }
 .mh-vinyl {
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0; inset: 0;
 }
 /* 外层半透明底盘：稍大于下方蓝色圆环的浅灰蓝半透明圆盘，营造悬浮底座 */
 .mh-vinyl::before {
     content: '';
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0; inset: 0;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 42%,
         rgba(150,175,215,.32) 0 55%,
@@ -94,7 +94,7 @@
 /* 外圈蓝色圆环 = 自定义区域（上传唱片图显示于此），边缘一圈细白边 */
 .mh-vinyl-art {
     position: absolute;
-    inset: 4px;
+    top: 4px; right: 4px; bottom: 4px; left: 4px; inset: 4px;
     border-radius: 50%;
     border: 2px solid rgba(255,255,255,.92);
     background:
@@ -118,7 +118,7 @@
 /* 中间白色固定圆（不随自定义图片变化） */
 .mh-vinyl-center {
     position: absolute;
-    inset: 34%;
+    top: 34%; right: 34%; bottom: 34%; left: 34%; inset: 34%;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 38%, #ffffff 0 58%, #eef2f7 100%);
     box-shadow:
@@ -726,7 +726,7 @@
 .mh-line-swatch--custom::after {
     content: '✚';
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0; inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
