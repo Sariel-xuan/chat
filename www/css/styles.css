@@ -4097,7 +4097,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            max-width: min(320px, 88vw);
+            max-width: min(360px, 88vw);
             font-size: 13.5px;
             line-height: 1.4;
             letter-spacing: 0.2px;
@@ -4105,6 +4105,19 @@
             border: 1px solid var(--border-color);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
+        }
+        /* ── 学习 mochi #cc-toast：多行长文案不截断 ──
+           .notification 是 flex(图标+文字)，<span> 需 min-width:0 才能换行，
+           否则长文字被 min-width:auto 撑出容器而截断/溢出。 */
+        .notification span {
+            flex: 1;
+            min-width: 0;
+            white-space: pre-line;      /* 保留原文 \n，多行正确换行(mochi 同款) */
+            overflow-wrap: break-word;  /* 长 URL/长串强制断行(mochi 同款) */
+            word-break: break-word;     /* 连续长串(长昵称/长串)强制换行 */
+            word-wrap: break-word;      /* 老内核别名 */
+            text-align: left;
+            line-height: 1.45;
         }
         .notification.success {
             border-color: rgba(100,200,120,0.35);
