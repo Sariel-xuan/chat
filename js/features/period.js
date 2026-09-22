@@ -637,10 +637,11 @@
     function startPeriod() {
         var today = fmtYM(_today());
         saveCurrent({ start: today });
-        // 联动：若尚未设置最近经期开始日，则同步为今天，让日历/预测同样生效
+        // 标记开始 = 把今天设为最近经期开始日，让日历同步把经期高亮到今日并据此预测
         var s = getSettings();
         if (!s) s = {};
-        if (!s.lastStart) { s.lastStart = today; saveSettings(s); }
+        s.lastStart = today;
+        saveSettings(s);
         renderPage();
     }
 
@@ -669,21 +670,31 @@
         var box = $('pe-cycle-action');
         if (!box) return;
         var cur = getCurrent();
+        var s = getSettings();
         var html;
         if (cur && cur.start) {
+            // 进行中：左侧「经期第X天」+ 中间「开始于」+ 右侧「标记结束」
             var st = ymdToDate(cur.start);
             var dayN = st ? (dayDiff(_today(), st) + 1) : 1;
             html =
-                '<div class="pe-cycle-on">' +
-                    '<div class="pe-cycle-chips"><span class="pe-chip pe-chip-on"><i class="fas fa-tint"></i>经期进行中</span></div>' +
-                    '<div class="pe-cycle-live">今天是经期第 <b>' + dayN + '</b> 天（' + fmtMD(st) + ' 开始）</div>' +
-                    '<button class="pe-cycle-btn pe-cycle-end" onclick="window.PeriodApp&&PeriodApp.endPeriod()">标记结束 · 总结本次经期</button>' +
+                '<div class="pe-cycle-bar">' +
+                    '<span class="pe-cycle-bar-tag pe-tag-on">经期第 ' + dayN + ' 天</span>' +
+                    '<span class="pe-cycle-bar-msg">' + fmtMD(st) + ' 开始</span>' +
+                    '<button class="pe-cycle-bar-btn" onclick="window.PeriodApp&&PeriodApp.endPeriod()">标记结束</button>' +
                 '</div>';
         } else {
+            // 空闲：参考图横向栏 —— 左侧「今天」深色标签 + 中间灰色状态 + 右侧玫红按钮
+            var tag = '今天';
+            var msg = '尚未记录经期，点击右侧按钮开始';
+            if (s && s.lastStart) {
+                var stt = computeStatus(s);
+                if (stt && stt.main) msg = stt.main; // 如「距离预测经期 4 天」
+            }
             html =
-                '<div class="pe-cycle-idle">' +
-                    '<div class="pe-cycle-idle-t">今天开经了吗？</div>' +
-                    '<button class="pe-cycle-btn pe-cycle-start" onclick="window.PeriodApp&&PeriodApp.startPeriod()"><i class="fas fa-flag-checkered"></i>标记今天开始</button>' +
+                '<div class="pe-cycle-bar">' +
+                    '<span class="pe-cycle-bar-tag">' + esc(tag) + '</span>' +
+                    '<span class="pe-cycle-bar-msg">' + esc(msg) + '</span>' +
+                    '<button class="pe-cycle-bar-btn" onclick="window.PeriodApp&&PeriodApp.startPeriod()">标记今天开始</button>' +
                 '</div>';
         }
         box.innerHTML = html;
