@@ -222,7 +222,7 @@
         el.innerHTML = html;
     }
 
-    function renderPage() { renderStatus(); renderCalendar(); }
+    function renderPage() { renderStatus(); renderCalendar(); _renderCycleAction(); _renderCycleList(); }
 
     // ── 设置弹窗 ──
     function openSettings() {
@@ -617,13 +617,114 @@
         _remTimer = setInterval(checkPeriodReminders, 30000);
     }
 
+    // ══ 周期打卡：标记今天开始 / 标记结束 + 历史记录（新到旧） ══
+    var CYCLE_KEY = 'tiPeriodCycles';
+    var CURRENT_KEY = 'tiPeriodCurrent';
+    function getCycles() {
+        var arr = null;
+        try { var v = JSON.parse(dsGet(CYCLE_KEY)); if (Array.isArray(v)) arr = v; } catch (e) {}
+        return arr || [];
+    }
+    function saveCycles(list) { dsSet(CYCLE_KEY, JSON.stringify(list || [])); }
+    function getCurrent() {
+        var v = null;
+        try { v = JSON.parse(dsGet(CURRENT_KEY)); } catch (e) {}
+        return (v && v.start) ? v : null;
+    }
+    function saveCurrent(c) { dsSet(CURRENT_KEY, JSON.stringify(c || null)); }
+    function _today() { var n = new Date(); n.setHours(0, 0, 0, 0); return n; }
+
+    function startPeriod() {
+        var today = fmtYM(_today());
+        saveCurrent({ start: today });
+        // 联动：若尚未设置最近经期开始日，则同步为今天，让日历/预测同样生效
+        var s = getSettings();
+        if (!s) s = {};
+        if (!s.lastStart) { s.lastStart = today; saveSettings(s); }
+        renderPage();
+    }
+
+    function endPeriod() {
+        var cur = getCurrent();
+        if (!cur || !cur.start) return;
+        var start = ymdToDate(cur.start);
+        if (!start) { saveCurrent(null); renderPage(); return; }
+        var end = _today();
+        if (dayDiff(end, start) < 0) start = end; // 防御：结束不应早于开始
+        var days = dayDiff(end, start) + 1;
+        var cy = { start: fmtYM(start), end: fmtYM(end), days: days };
+        var list = getCycles();
+        list.push(cy);
+        // 新到旧：按开始日降序
+        list.sort(function (a, b) { return dayDiff(ymdToDate(b.start), ymdToDate(a.start)); });
+        saveCycles(list);
+        saveCurrent(null);
+        renderPage();
+        if (typeof showNotification === 'function') {
+            showNotification('本次经期已总结：' + cy.start + ' ~ ' + cy.end + '，持续 ' + days + ' 天，已生成记录', 'success', 2600);
+        }
+    }
+
+    function _renderCycleAction() {
+        var box = $('pe-cycle-action');
+        if (!box) return;
+        var cur = getCurrent();
+        var html;
+        if (cur && cur.start) {
+            var st = ymdToDate(cur.start);
+            var dayN = st ? (dayDiff(_today(), st) + 1) : 1;
+            html =
+                '<div class="pe-cycle-on">' +
+                    '<div class="pe-cycle-chips"><span class="pe-chip pe-chip-on"><i class="fas fa-tint"></i>经期进行中</span></div>' +
+                    '<div class="pe-cycle-live">今天是经期第 <b>' + dayN + '</b> 天（' + fmtMD(st) + ' 开始）</div>' +
+                    '<button class="pe-cycle-btn pe-cycle-end" onclick="window.PeriodApp&&PeriodApp.endPeriod()">标记结束 · 总结本次经期</button>' +
+                '</div>';
+        } else {
+            html =
+                '<div class="pe-cycle-idle">' +
+                    '<div class="pe-cycle-idle-t">今天开经了吗？</div>' +
+                    '<button class="pe-cycle-btn pe-cycle-start" onclick="window.PeriodApp&&PeriodApp.startPeriod()"><i class="fas fa-flag-checkered"></i>标记今天开始</button>' +
+                '</div>';
+        }
+        box.innerHTML = html;
+    }
+
+    function _summaryText(cy) {
+        return '于 ' + cy.start + ' 开始，持续 ' + cy.days + ' 天，至 ' + cy.end + ' 结束';
+    }
+
+    function _renderCycleList() {
+        var el = $('pe-cycle-list');
+        if (!el) return;
+        var list = getCycles();
+        if (!list.length) {
+            el.innerHTML = '<div class="pe-records-empty">暂无经期记录，点击上方「标记今天开始」开启第一个周期</div>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < list.length; i++) {
+            var cy = list[i];
+            html += '<div class="pe-record">' +
+                '<div class="pe-record-top">' +
+                    '<i class="fas fa-calendar-check pe-record-ico"></i>' +
+                    '<span class="pe-record-range">' + esc(cy.start) + ' ~ ' + esc(cy.end) + '</span>' +
+                    '<span class="pe-record-days">' + cy.days + ' 天</span>' +
+                '</div>' +
+                '<div class="pe-record-sum">本次经期' + _summaryText(cy) + '。</div>' +
+            '</div>';
+        }
+        el.innerHTML = html;
+    }
+
     // ── 挂载 ──
     window.PeriodApp = {
         render: renderPage,
         renderDesktopCard: renderDesktopCard,
         computeStatus: computeStatus,
         getSettings: getSettings,
-        onShow: renderPage
+        onShow: renderPage,
+        startPeriod: startPeriod,
+        endPeriod: endPeriod
     };
     window.openPeriodSettings = openSettings;
     window.openPeriodLog = openLogModal;

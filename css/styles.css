@@ -14945,3 +14945,36 @@ html[data-theme="dark"] .pe-log-flag{background:#7fb0ff;}
 .pe-quote-add input{flex:1;margin-bottom:0;}
 .pe-quote-add-btn{width:40px;height:40px;border-radius:10px;border:none;background:linear-gradient(145deg,#f2a0bd,#e56b9b);color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;box-shadow:0 3px 10px rgba(229,107,155,.3);}
 .pe-quote-add-btn:active{transform:scale(.9);}
+
+/* ══ 周期打卡：标记开始 / 标记结束 + 历史记录（新到旧） ══ */
+.pe-cycle-action{margin-top:14px;flex-shrink:0;}
+.pe-cycle-idle{background:linear-gradient(135deg,#fbe3ec,#fdf1dc);border:1px solid rgba(244,166,197,.4);border-radius:20px;padding:18px;text-align:center;box-shadow:0 8px 26px rgba(244,143,177,.16);}
+html[data-theme="dark"] .pe-cycle-idle{background:linear-gradient(135deg,rgba(194,68,111,.24),rgba(168,123,26,.16));border-color:rgba(244,166,197,.3);}
+.pe-cycle-idle-t{font-size:14px;color:#c2446f;font-weight:700;letter-spacing:.5px;margin-bottom:12px;}
+html[data-theme="dark"] .pe-cycle-idle-t{color:#f2a6c1;}
+.pe-cycle-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:24px;padding:12px 26px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:transform .15s,box-shadow .15s;color:#fff;}
+.pe-cycle-btn:active{transform:scale(.95);}
+.pe-cycle-start{background:linear-gradient(145deg,#f2a0bd,#e56b9b);box-shadow:0 6px 18px rgba(229,107,155,.36);}
+.pe-cycle-on{background:linear-gradient(135deg,#fbf3f7,#fff);border:1px solid rgba(244,166,197,.45);border-radius:20px;padding:16px;text-align:center;box-shadow:0 8px 26px rgba(244,143,177,.14);}
+html[data-theme="dark"] .pe-cycle-on{background:linear-gradient(160deg,rgba(194,68,111,.2),rgba(18,18,24,.4));border-color:rgba(244,166,197,.3);}
+.pe-cycle-chips{margin-bottom:8px;}
+.pe-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:16px;letter-spacing:.5px;}
+.pe-chip-on{background:linear-gradient(145deg,#f2a0bd,#e56b9b);color:#fff;box-shadow:0 3px 10px rgba(229,107,155,.3);}
+.pe-cycle-live{font-size:14px;color:var(--text-primary);margin-bottom:12px;}
+.pe-cycle-live b{color:#c2446f;font-size:18px;}
+html[data-theme="dark"] .pe-cycle-live b{color:#f2a6c1;}
+.pe-cycle-end{background:linear-gradient(145deg,#e56b9b,#b83c60);box-shadow:0 6px 18px rgba(184,60,96,.36);}
+
+/* 历史经期记录 */
+.pe-cycle-records{margin-top:14px;flex-shrink:0;}
+.pe-records-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-primary);letter-spacing:1px;margin-bottom:10px;padding:0 2px;}
+.pe-records-title i{color:#e56b9b;font-size:15px;}
+.pe-records-list{display:flex;flex-direction:column;gap:10px;}
+.pe-records-empty{background:var(--secondary-bg);border:1px dashed var(--border-color);border-radius:16px;padding:18px;text-align:center;font-size:13px;color:var(--text-secondary);letter-spacing:.5px;line-height:1.7;}
+.pe-record{background:linear-gradient(180deg,var(--secondary-bg),rgba(244,143,177,.06));border:1px solid var(--surface-border);border-radius:16px;padding:13px 14px;box-shadow:0 6px 18px rgba(0,0,0,.06);}
+.pe-record-top{display:flex;align-items:center;gap:10px;}
+.pe-record-ico{color:#e56b9b;font-size:15px;flex-shrink:0;}
+.pe-record-range{flex:1;font-size:14px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pe-record-days{font-size:12px;font-weight:700;color:#c2446f;background:rgba(244,166,197,.16);border:1px solid rgba(244,166,197,.5);padding:2px 9px;border-radius:12px;flex-shrink:0;}
+html[data-theme="dark"] .pe-record-days{color:#f2a6c1;}
+.pe-record-sum{margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.6;letter-spacing:.3px;}
