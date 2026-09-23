@@ -1040,6 +1040,28 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
 
         document.getElementById('call-hangup-btn')?.addEventListener('click', endCall);
         document.getElementById('call-mini-hangup')?.addEventListener('click', e => { e.stopPropagation(); endCall(); });
+
+        // ── 低版本 WebView 兼容：触摸挂断兜底 ──
+        // 部分安卓 WebView / 低版本 Safari 上，拖拽绑定 + touch-action:none 会吞掉点击合成
+        // 事件，或 touchend 的目标发生漂移，导致挂断按钮"点不动"（尤其未接通连接中状态）。
+        // 这里直接在按钮上补一层 touchend 兜底：只要手指基本未移动（视为点按）就触发挂断。
+        // endCall 对重复触发幂等（_tearDown 返回 false 即无副作用），不会重复记通话。
+        function _bindHangupTouch(btn) {
+            if (!btn || btn.__hangupTouchBound) return;
+            btn.__hangupTouchBound = true;
+            var tx = 0, ty = 0;
+            btn.addEventListener('touchstart', function(e) {
+                var t = (e.touches && e.touches[0]) || e;
+                tx = t.clientX; ty = t.clientY;
+            }, { passive: true });
+            btn.addEventListener('touchend', function(e) {
+                var t = (e.changedTouches && e.changedTouches[0]);
+                if (!t) { endCall(); return; }
+                if (Math.abs(t.clientX - tx) < 10 && Math.abs(t.clientY - ty) < 10) endCall();
+            }, { passive: true });
+        }
+        _bindHangupTouch(document.getElementById('call-hangup-btn'));
+        _bindHangupTouch(document.getElementById('call-mini-hangup'));
         document.getElementById('call-minimize-btn')?.addEventListener('click', minimizeWindow);
         document.getElementById('call-mini-pill')?.addEventListener('click', e => {
             if (e.target.closest('.call-mini-hangup')) return;
