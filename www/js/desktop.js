@@ -1288,7 +1288,21 @@
         }
 
         function baseOffset() { return -cur * TARGET; }
-        function apply(pct) { track.style.transform = 'translateX(' + pct + '%)'; }
+        // 像素定位 + 取整：百分比 translateX(%) 是相对轨道宽度(=COUNT×页宽)换算的，
+        // 在旧 WebView / 高分屏(DPR≠1) 上亚像素会被舍入出偏差，导致轨道停在两页之间
+        // （第2、3页各占一半）。改为每次换算成整数像素，静止时精确落在页边界。
+        function pageWidthPx() {
+            var w = pager.getBoundingClientRect().width;
+            if (w > 0) return w;
+            return pager.offsetWidth || window.innerWidth || 360;
+        }
+        function apply(pct) {
+            var trackW = pageWidthPx() * COUNT;            // 轨道总宽(px) = COUNT×页宽
+            var px = Math.round(pct / 100 * trackW);       // pct 是相对整条轨道(=COUNT×页宽)的百分比
+            var t = 'translate3d(' + px + 'px,0,0)';
+            track.style.transform = t;
+            track.style.webkitTransform = t;
+        }
         // 收尾动画改用 requestAnimationFrame 手动驱动，不依赖 CSS transition。
         // 部分 Android WebView 上「先恢复过渡 → 强制重排 → 再改 transform」在同一帧
         // 会因样式批量合并导致过渡不触发，轨道永久停在两页之间。
@@ -1383,6 +1397,19 @@
 
         pager.addEventListener('click', suppressClick, true);
         render(false);
+
+        // 横竖屏切换 / 尺寸变化时按当前页重新对齐，避免旋转后停在两页之间
+        var _pagerLastPw = 0;
+        function _pagerReapply() {
+            var pw = pageWidthPx();
+            if (Math.abs(pw - _pagerLastPw) > 0.5) {
+                _pagerLastPw = pw;
+                offset = baseOffset();
+                apply(offset);
+            }
+        }
+        window.addEventListener('resize', _pagerReapply);
+        window.addEventListener('orientationchange', _pagerReapply);
     }
 
     if (document.readyState === 'loading') {

@@ -76,20 +76,43 @@ window._annGetPinned = function() {
 // 关键：完全不改 cs-days-text 的 DOM 结构，只覆盖它
 function _annUpdateHeaderDays() {
     var textEl = document.querySelector('.cs-days-text');
-    var numEl  = document.getElementById('cs-days-num');
-    if (!textEl || !numEl) return;
+    if (!textEl) return;
 
     var p = window._annGetPinned && window._annGetPinned();
-    if (!p) {
-        textEl.innerHTML = '相识 <span class="cs-days-num" id="cs-days-num">---</span> 天';
+    if (p) {
+        textEl.innerHTML =
+            '<div class="cs-days-title">' + p.name + ' ' + p.verb + '</div>'
+            + '<div class="cs-days-line">'
+            + '<span class="cs-days-num" id="cs-days-num">' + p.days.toLocaleString('zh-CN') + '</span>'
+            + '<span class="cs-days-unit">天</span>'
+            + '</div>';
         return;
     }
-    textEl.innerHTML =
-        '<div class="cs-days-title">' + p.name + ' ' + p.verb + '</div>'
-        + '<div class="cs-days-line">'
-        + '<span class="cs-days-num" id="cs-days-num">' + p.days.toLocaleString('zh-CN') + '</span>'
-        + '<span class="cs-days-unit">天</span>'
-        + '</div>';
+
+    // ── 兜底：没有可用的“相遇/置顶”数据时 ──
+    // 新版本依赖「首条消息时间戳」或「手动编辑的相遇日期」到手算天数；
+    // 一旦两者都拿不到（messages 为空 / 云端数据尚未同步回来），旧实现会一直显示 “---”。
+    // 这里回退到第一条纪念日（优先 anniversary 类型）估算“相识”天数，避免头部万年 “---”。
+    var fb = _annGetFirstMeetFallback();
+    if (fb) {
+        textEl.innerHTML =
+            '相识 <span class="cs-days-num" id="cs-days-num">' + fb.days.toLocaleString('zh-CN') + '</span> 天';
+        return;
+    }
+
+    textEl.innerHTML = '相识 <span class="cs-days-num" id="cs-days-num">---</span> 天';
+}
+
+// 头部“相识”天数兜底来源：第一条纪念日（优先 anniversary 类型，跳过倒计时）
+function _annGetFirstMeetFallback() {
+    var list = (typeof anniversaries !== 'undefined' && Array.isArray(anniversaries)) ? anniversaries : [];
+    if (!list.length) return null;
+    var main = list.find(function(a) { return a.type !== 'countdown'; }) || list[0];
+    if (!main || !main.date) return null;
+    var target = window.parseDateLocal(main.date);
+    if (!target || isNaN(target.getTime())) return null;
+    var days = Math.max(0, Math.floor((Date.now() - target.getTime()) / 86400000));
+    return { name: main.name || '纪念日', days: days };
 }
 
 // ── 左滑手势 ──────────────────────────────────────────────
